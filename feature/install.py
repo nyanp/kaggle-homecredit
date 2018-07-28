@@ -4,16 +4,31 @@ import numpy as np
 
 
 class Install(object):
-    def __init__(self):
-        self.install = pd.read_feather('../input/installments_payments.f')
+    def __init__(self, file=None):
+        if file is None:
+            self.install = pd.read_feather('../input/installments_payments.f')
 
-        # 最近の支払ほど上に。
-        self.install.sort_values(['SK_ID_CURR','SK_ID_PREV','DAYS_ENTRY_PAYMENT'], ascending=False, inplace=True)
+            # 最近の支払ほど上に。
+            self.install.sort_values(['SK_ID_CURR', 'SK_ID_PREV', 'DAYS_ENTRY_PAYMENT'], ascending=False, inplace=True)
+            self.install.reset_index(inplace=True, drop=True)
+
+            self.transformed = False
+        else:
+            self.install = pd.read_feather(file)
+            self.transformed = True
+
+    @classmethod
+    def from_cache(cls):
+        print('install loading from cache...')
+        return cls('cache/install.f')
 
     def fill(self):
         pass
 
     def transform(self):
+        if self.transformed:
+            return
+
         self._transform_per_payment()
         self._transform_per_prev()
 
@@ -54,6 +69,9 @@ class Install(object):
             'DAYS_ENTRY_PAYMENT'].shift(-1)
 
         self.install = ins
+
+        self.install.to_feather('cache/install.f')
+        self.transformed = True
 
     def _transform_per_prev(self):
         # prev_idごとの特徴量

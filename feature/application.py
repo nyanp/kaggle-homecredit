@@ -3,13 +3,25 @@ import numpy as np
 
 
 class Application(object):
-    def __init__(self):
-        self.df = pd.read_feather('../input/application_all.f')
+    def __init__(self, file=None):
+        if file is None:
+            self.df = pd.read_feather('../input/application_all.f')
+            self.transformed = False
+        else:
+            self.df = pd.read_feather(file)
+            self.transformed = True
+
+    @classmethod
+    def from_cache(cls):
+        print('app loading from cache...')
+        return cls('cache/application.f')
 
     def fill(self):
         pass
 
     def transform(self):
+        if self.transformed:
+            return
         # Optional: Remove 4 applications with XNA CODE_GENDER (train set)
         self.df = self.df[self.df['CODE_GENDER'] != 'XNA']
 
@@ -45,6 +57,9 @@ class Application(object):
         self.df = make_groupby(self.df, 'OCCUPATION_TYPE', 'AMT_CREDIT', 'REL_AMT_CREDIT_BY_OCCUPATION')
         self.df = make_groupby(self.df, 'OCCUPATION_TYPE', 'AMT_ANNUITY', 'REL_AMT_ANNUITY_BY_OCCUPATION')
         self.df = make_groupby(self.df, 'OCCUPATION_TYPE', 'DAYS_BIRTH', 'REL_DAYS_BIRTH_BY_OCCUPATION')
+
+        self.transformed = True
+        self.df.to_feather('cache/application.f')
 
     def _prev_to_curr_credit_annuity_ratio(self, df, prev):
         prev_ = prev[prev.AMT_ANNUITY > 0]

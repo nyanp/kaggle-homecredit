@@ -4,15 +4,32 @@ import features_common
 
 
 class Bureau(object):
-    def __init__(self):
-        self.bureau = pd.read_feather('../input/bureau.f')
-        self.bb = pd.read_feather('../input/bureau_balance.f')
+    def __init__(self, bureau=None, bb=None):
+        if bureau is None:
+            assert bb is None
+            self.bureau = pd.read_feather('../input/bureau.f')
+            self.bb = pd.read_feather('../input/bureau_balance.f')
+            self.transformed = False
+        else:
+            self.bureau = pd.read_feather(bureau)
+            self.bb = pd.read_feather(bb)
+            self.transformed = True
+
+    @classmethod
+    def from_cache(cls):
+        print('credit loading from cache...')
+        return cls('cache/bureau.f', 'cache/bb.f')
 
     def fill(self):
+        if self.transformed:
+            return
         #self.bureau['AMT_CREDIT_SUM'].fillna(0, inplace=True)
         self.bureau['AMT_CREDIT_SUM_DEBT'].fillna(0, inplace=True)
 
     def transform(self):
+        if self.transformed:
+            return
+
         bureau = self.bureau
         bureau_balance = self.bb
         
@@ -48,6 +65,8 @@ class Bureau(object):
 
         self.bureau = bureau
         self.bb = bureau_balance
+        self.bureau.to_feather('cache/bureau.f')
+        self.bb.to_feather('cache/bb.f')
 
     def aggregate(self, df):
         print('aggregate: bureau')
@@ -75,7 +94,7 @@ class Bureau(object):
             'AMT_CREDIT_SUM_RATIO': ['mean', 'max'],
             'DAYS_CREDIT_PLAN': ['mean', 'sum'],
 
-            'AMT_CREDIT_DEBT_PERC': ['mean','min','max'], #TODO min/maxも効く？
+            'AMT_CREDIT_DEBT_PERC': ['mean','min','max'],
             'AMT_CREDIT_DEBT_DIFF': ['mean','sum']
         }
 
@@ -93,7 +112,6 @@ class Bureau(object):
         b = pd.merge(b, bb_agg, how='left', on='SK_ID_BUREAU')
 
         # カテゴリ別とステータス別に分けておく。
-        # TODO: 2年以内など、期間で切る
 
         agg_active = agg.copy()
         agg_active['AMT_CREDIT_DEBT_PERC_NZ'] = ['min','max']

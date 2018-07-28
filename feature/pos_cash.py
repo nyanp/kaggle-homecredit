@@ -3,15 +3,29 @@ import features_common
 
 
 class PosCash(object):
-    def __init__(self):
-        self.pos = pd.read_feather('../input/POS_CASH_balance.f')
-        self.pos.sort_values(by=['SK_ID_CURR', 'SK_ID_PREV', 'MONTHS_BALANCE'], ascending=False, inplace=True)
+    def __init__(self, file=None):
+        if file is None:
+            self.pos = pd.read_feather('../input/POS_CASH_balance.f')
+            self.pos.sort_values(by=['SK_ID_CURR', 'SK_ID_PREV', 'MONTHS_BALANCE'], ascending=False, inplace=True)
+            self.pos.reset_index(inplace=True, drop=True)
+            self.transformed = False
+        else:
+            self.pos = pd.read_feather(file)
+            self.transformed = True
+
+    @classmethod
+    def from_cache(cls):
+        print('cash loading from cache...')
+        return cls('cache/pos.f')
 
     def fill(self):
         pass
 
     def transform(self):
-        pass
+        if self.transformed:
+            return
+        self.pos.to_feather('cache/pos.f')
+        self.transformed = True
 
     def aggregate(self, df):
         print('aggregate: cash')

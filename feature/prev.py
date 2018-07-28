@@ -4,10 +4,17 @@ import features_common
 
 
 class Prev(object):
-    def __init__(self):
-        self.prev = pd.read_feather('../input/previous_application.f')
+    def __init__(self, file=None):
+        if file is None:
+            self.prev = pd.read_feather('../input/previous_application.f')
+            self.transformed = False
+        else:
+            self.prev = pd.read_feather(file)
+            self.transformed = True
 
     def fill(self):
+        if self.transformed:
+            return
         self.prev['DAYS_FIRST_DRAWING'].replace(365243, np.nan, inplace=True)
         self.prev['DAYS_FIRST_DUE'].replace(365243, np.nan, inplace=True)
         self.prev['DAYS_LAST_DUE_1ST_VERSION'].replace(365243, np.nan, inplace=True)
@@ -15,9 +22,18 @@ class Prev(object):
         self.prev['DAYS_TERMINATION'].replace(365243, np.nan, inplace=True)
 
     def transform(self):
+        if self.transformed:
+            return
         self.prev['CREDIT_TO_ANNUITY_RATIO'] = self.prev['AMT_CREDIT'] / self.prev['AMT_ANNUITY']
         self.prev['CREDIT_TO_GOODS_RATIO'] = self.prev['AMT_GOODS_PRICE'] / self.prev['AMT_CREDIT']
         self.prev['APP_CREDIT_PERC'] = self.prev['AMT_APPLICATION'] / self.prev['AMT_CREDIT']
+        self.prev.to_feather('cache/prev.f')
+        self.transformed = True
+
+    @classmethod
+    def from_cache(cls):
+        print('prev loading from cache...')
+        return cls('cache/prev.f')
 
     def aggregate(self, df):
         print('aggregate: prev')

@@ -5,18 +5,17 @@ import application
 import pos_cash
 import install
 import prev
+import time
 
 
 class Feature(object):
-    def __init__(self):
-        tables = {
-            'credit': credit.Credit(),
-            'bureau': bureau.Bureau(),
-            'prev': prev.Prev(),
-            'install': install.Install(),
-            'cash': pos_cash.PosCash(),
-            'app': application.Application()
-        }
+    def __init__(self, update='all'):
+        tables = {'credit': credit.Credit() if update == 'all' or ('credit' in update) else credit.Credit.from_cache(),
+                  'bureau': bureau.Bureau() if update == 'all' or ('bureau' in update) else bureau.Bureau.from_cache(),
+                  'prev': prev.Prev() if update == 'all' or ('prev' in update) else prev.Prev.from_cache(),
+                  'install': install.Install() if update == 'all' or ('install' in update) else install.Install.from_cache(),
+                  'cash': pos_cash.PosCash() if update == 'all' or ('cash' in update) else pos_cash.PosCash.from_cache(),
+                  'app': application.Application() if update == 'all' or ('app' in update) else application.Application.from_cache()}
 
         print('transform...')
         for k, v in tables.items():
@@ -59,9 +58,12 @@ class Feature(object):
 
 
 if __name__ == "__main__":
-    f = Feature()
+    start = time.time()
+    f = Feature(update=[])
 
     print(f.df.shape)
 
     f.df.to_feather('features_all.f')
     f.df.head(100).to_csv('all_sample.csv', index=False)
+
+    print('finished generating features. ({} sec)'.format(time.time() - start))
