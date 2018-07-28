@@ -60,7 +60,7 @@ class Feature(object):
 if __name__ == "__main__":
     f = Feature()
 
-    print(f.shape)
+    print(f.df.shape)
 
     f.df.to_feather('features_all.f')
     f.df.head(100).to_csv('all_sample.csv', index=False)

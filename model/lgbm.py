@@ -26,6 +26,7 @@ def prep_and_split(df):
     return X_train, y_train, X_test
 
 
+# Baseline CV:0.7950 LB:0.798
 class LGBM(object):
     def __init__(self, name, remove_columns = None,
                  param = None, kfold_seed = 47, lgb_seed = None, n_estimators = 10000, log = None):
@@ -157,6 +158,6 @@ class LGBM(object):
 
 
 if __name__ == "__main__":
-    m = LGBM()
+    m = LGBM(name='lgbm')
 
     m.cv()
