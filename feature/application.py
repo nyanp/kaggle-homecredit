@@ -84,9 +84,6 @@ class Application(object):
 
         # df_ratio['PREV_TO_CURR_CREDIT_RATIO'] = df_ratio['AMT_CREDIT'] / df_ratio['MEAN_PREV_CREDIT']
 
-        # TODO: いらないかも
-        df_ratio['PREV_TO_CURR_ANNUITY_RATIO'] = df_ratio['AMT_ANNUITY'] / df_ratio['MEAN_PREV_ANNUITY']
-
         df_ratio['PREV_TO_CURR_CREDIT_RATIO_CASH'] = df_ratio['AMT_CREDIT'] / df_ratio['MEAN_PREV_CASH_CREDIT']
         df_ratio['PREV_TO_CURR_ANNUITY_RATIO_CASH'] = df_ratio['AMT_ANNUITY'] / df_ratio['MEAN_PREV_CASH_ANNUITY']
 

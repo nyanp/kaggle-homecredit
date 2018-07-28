@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import features_common
 
 
@@ -24,6 +25,11 @@ class PosCash(object):
     def transform(self):
         if self.transformed:
             return
+
+        normal = ['Active','Completed','Signed','Approved']
+        self.pos['IRREGULAR_CONTRACT'] = self.pos.NAME_CONTRACT_STATUS.isin(normal).astype(np.int32)
+        print(self.pos.IRREGULAR_CONTRACT.value_counts())
+
         self.pos.to_feather('cache/pos.f')
         self.transformed = True
 
@@ -34,20 +40,18 @@ class PosCash(object):
             'MONTHS_BALANCE': ['count', 'mean'],
             'SK_DPD': ['sum', 'max'],
             'SK_DPD_DEF': ['sum', 'max'],
-            # 'SK_DPD_BINARY': ['sum']
+            'IRREGULAR_CONTRACT': ['sum']
         }
 
-        pos_agg = self.pos.groupby('SK_ID_CURR').agg({**num_aggregations})
-        pos_agg.columns = features_common.make_agg_names('pos_', pos_agg.columns.tolist())
-        pos_agg.reset_index(inplace=True)
-
-        df = pd.merge(df, pos_agg, on='SK_ID_CURR', how='left')
+        df = features_common.aggregate(df, num_aggregations, self.pos, 'pos_')
+        #df = features_common.aggregate(df, num_aggregations, self.pos.query('MONTHS_BALANCE >= -12'), 'pos12_')
+        #df = features_common.aggregate(df, num_aggregations, self.pos.query('MONTHS_BALANCE >= -36'), 'pos36_')
 
         # additional
         # CNT_INSTALMENT_AHEAD_RATIO:前倒しの割合
         # CNT_INSTALMENT_AHEAD:前倒しの月数
 
-        # TODO: DPDやDPD_DEFも、期間を切ってみる
+        # Done: DPDやDPD_DEFも、期間を切ってみる -> 効かず
         def calc_aheads(df):
             tail = df.groupby('SK_ID_PREV')['SK_ID_CURR', 'SK_ID_PREV', 'CNT_INSTALMENT'].tail(1)
             head = df.groupby('SK_ID_PREV')['SK_ID_CURR', 'SK_ID_PREV', 'CNT_INSTALMENT'].head(1)
@@ -64,7 +68,7 @@ class PosCash(object):
 
         pos_agg = pos_prev.groupby('SK_ID_CURR').agg({
             'CNT_INSTALMENT_AHEAD': ['min', 'max'],
-            'CNT_INSTALMENT_AHEAD_RATIO': ['min']
+            'CNT_INSTALMENT_AHEAD_RATIO': ['min'],
         })
 
         pos_agg.columns = features_common.make_agg_names('pos_', pos_agg.columns.tolist())
@@ -72,7 +76,7 @@ class PosCash(object):
 
         pos12_agg = pos_prev12.groupby('SK_ID_CURR').agg({
             'CNT_INSTALMENT_AHEAD': ['min', 'max'],
-            'CNT_INSTALMENT_AHEAD_RATIO': ['mean', 'max']
+            'CNT_INSTALMENT_AHEAD_RATIO': ['mean', 'max'],
         })
 
         pos12_agg.columns = features_common.make_agg_names('pos12_', pos12_agg.columns.tolist())

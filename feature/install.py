@@ -30,7 +30,6 @@ class Install(object):
             return
 
         self._transform_per_payment()
-        self._transform_per_prev()
 
         ins = self.install
 
@@ -72,10 +71,6 @@ class Install(object):
 
         self.install.to_feather('cache/install.f')
         self.transformed = True
-
-    def _transform_per_prev(self):
-        # prev_idごとの特徴量
-        pass
 
     def _transform_per_payment(self):
         # paymentごとの特徴量
@@ -141,7 +136,11 @@ class Install(object):
         }
 
         df = features_common.aggregate(df, agg_full, self.install, 'ins_')
+
+        # note: 720, 90daysを足してもスコア上がらず。
         df = features_common.aggregate(df, agg_365, self.install.query('DAYS_ENTRY_PAYMENT >= -365'), 'ins365_')
         df = features_common.aggregate(df, agg_180, self.install.query('DAYS_ENTRY_PAYMENT >= -180'), 'ins180_')
+
+        #df['ins_mean(DPD)_365_to_all'] = df['ins365_mean(DPD)'] / df['ins_mean(DPD)']
 
         return df
