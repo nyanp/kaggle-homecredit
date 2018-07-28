@@ -28,9 +28,10 @@ def prep_and_split(df):
 
 # Baseline CV:0.7950 LB:0.798
 class LGBM(object):
-    def __init__(self, name, remove_columns = None,
+    def __init__(self, name, comment=None, remove_columns = None,
                  param = None, kfold_seed = 47, lgb_seed = None, n_estimators = 10000, log = None):
         self.name = name
+        self.comment = comment
 
         if log is None:
             self.logfile = open('../output/{}.txt'.format(name), 'w')
@@ -97,7 +98,7 @@ class LGBM(object):
     def cv(self, nfolds=5, submission=True):
         self.classifiers.clear()
 
-        folds = KFold(n_splits=nfolds, shuffle=True, random_state=47)
+        folds = KFold(n_splits=nfolds, shuffle=True, random_state=self.kfold_seed)
         self.feature_importance_df = pd.DataFrame()
 
         oof_preds = np.zeros(self.x_train.shape[0])
@@ -107,6 +108,9 @@ class LGBM(object):
         self.logfile.write('fold: {}\n'.format(nfolds))
         self.logfile.write('data shape: {}\n'.format(self.x_train.shape))
         self.logfile.write('features: {}\n'.format(self.x_train.columns.tolist()))
+        if self.comment is not None:
+            self.logfile.write('comment: {}\n'.format(self.comment))
+
         self.logfile.write('output: ../output/{}.csv\n'.format(self.name))
         self.logfile.flush()
 
@@ -132,6 +136,7 @@ class LGBM(object):
             strlog = '[{}][{:.1f} sec] Fold {} AUC : {:.6f}'.format(str(datetime.now()), time.time() - fstart, n_fold + 1, roc_auc_score(valid_y, oof_preds[valid_idx]))
             print(strlog)
             self.logfile.write(strlog+'\n')
+            self.logfile.flush()
 
             self.classifiers.append(clf)
             del clf, train_x, train_y, valid_x, valid_y
@@ -148,8 +153,11 @@ class LGBM(object):
             sub['TARGET'] = preds
             sub.to_csv('../output/{}.csv'.format(self.name), index=False)
 
-        cols = self.feature_importance_df[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance", ascending=False)[:50].index
-        self.logfile.write('top features: {}'.format(cols))
+        cols = self.feature_importance_df[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance", ascending=False)[:100].index
+        self.logfile.write('top features:\n')
+        for c in cols:
+            self.logfile.write('{}\n'.format(c))
+
         self.logfile.flush()
 
         self.display_importances(self.feature_importance_df, self.name)
@@ -158,6 +166,7 @@ class LGBM(object):
 
 
 if __name__ == "__main__":
-    m = LGBM(name='lgbm')
 
-    m.cv()
+    #for seed in range(30, 50):
+    #    m = LGBM(name='lgbm_m6_kseed{}'.format(seed), kfold_seed=seed, comment='PREV_TO_CURR_ANNUITY_RATIO削除、cashのirregular-contractの数を追加')
+    #    m.cv()
