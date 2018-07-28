@@ -75,7 +75,7 @@ class Bureau(object):
             'AMT_CREDIT_SUM_RATIO': ['mean', 'max'],
             'DAYS_CREDIT_PLAN': ['mean', 'sum'],
 
-            'AMT_CREDIT_DEBT_PERC': ['mean'], #TODO min/maxも効く？
+            'AMT_CREDIT_DEBT_PERC': ['mean','min','max'], #TODO min/maxも効く？
             'AMT_CREDIT_DEBT_DIFF': ['mean','sum']
         }
 
@@ -107,6 +107,9 @@ class Bureau(object):
         df = features_common.aggregate(df, agg, b.query('CREDIT_TYPE == "Car loan"'), 'b_car_')
         df = features_common.aggregate(df, agg, b.query('CREDIT_TYPE == "Mortgage"'), 'b_mortage_')
         df = features_common.aggregate(df, agg, b.query('CREDIT_TYPE == "Microloan"'), 'b_micro_')
+
+        df = features_common.aggregate(df, agg_active, b.query('DAYS_CREDIT >= -720'), 'b_720_')
+        df = features_common.aggregate(df, agg_active, b.query('DAYS_CREDIT >= -365'), 'b_365_')
 
         self.bureau = b
         return df

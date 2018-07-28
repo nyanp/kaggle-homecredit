@@ -19,7 +19,8 @@ class Feature(object):
         }
 
         print('transform...')
-        for _, v in tables.items():
+        for k, v in tables.items():
+            print(k)
             v.fill()
             v.transform()
 

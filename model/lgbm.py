@@ -79,7 +79,7 @@ class LGBM(object):
         self.x_test.reset_index(drop=True, inplace=True)
 
     # Display/plot feature importance
-    def display_importances(self, feature_importance_df_, filename, n=60):
+    def display_importances(self, feature_importance_df_, filename, n=100):
         cols = feature_importance_df_[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance",
                                                                                                        ascending=False)[
                :n].index
@@ -88,7 +88,7 @@ class LGBM(object):
         import seaborn as sns
 
         best_features = feature_importance_df_.loc[feature_importance_df_.feature.isin(cols)]
-        plt.figure(figsize=(10, 12))
+        plt.figure(figsize=(10, 16))
         sns.barplot(x="importance", y="feature", data=best_features.sort_values(by="importance", ascending=False))
         plt.title('LightGBM Features (avg over folds)')
         plt.tight_layout()
