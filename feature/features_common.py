@@ -19,8 +19,10 @@ def group_by_1(df, by, target, agg_func, column_name, merge=True):
         return g
 
 
-def aggregate(df, aggregations, target, prefix):
-    agg = target.groupby('SK_ID_CURR').agg({**aggregations})
+def aggregate(df, aggregations, target, prefix, key='SK_ID_CURR', count_column=None):
+    agg = target.groupby(key).agg({**aggregations})
     agg.columns = make_agg_names(prefix, agg.columns.tolist())
     agg.reset_index(inplace=True)
-    return pd.merge(df, agg, on='SK_ID_CURR', how='left')
+    if count_column is not None:
+        agg[count_column] = target.groupby(key).size()
+    return pd.merge(df, agg, on=key, how='left')

@@ -17,7 +17,7 @@ class Bureau(object):
 
     @classmethod
     def from_cache(cls):
-        print('credit loading from cache...')
+        print('bureau loading from cache...')
         return cls('cache/bureau.f', 'cache/bb.f')
 
     def fill(self):

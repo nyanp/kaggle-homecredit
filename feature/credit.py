@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import features_common
-
+import numpy as np
 
 class Credit(object):
     def __init__(self, file=None):
@@ -14,7 +14,7 @@ class Credit(object):
 
     @classmethod
     def from_cache(cls):
-        print('bureau loading from cache...')
+        print('credit loading from cache...')
         return cls('cache/credit.f')
 
     def fill(self):
@@ -29,6 +29,7 @@ class Credit(object):
         # ゼロを含むとノイズが増える。
         self.credit['AMT_BALANCE_PER_LMT'] = self.credit['AMT_BALANCE'].replace(0, np.nan) / self.credit[
             'AMT_CREDIT_LIMIT_ACTUAL']
+
         self.credit.to_feather('cache/credit.f')
         self.transformed = True
 
@@ -62,7 +63,7 @@ class Credit(object):
 
     def aggregate(self, df):
         print('aggregate: credit')
-        num_aggregations = {
+        agg = {
             'MONTHS_BALANCE': ['count', 'mean'],
             'SK_DPD': ['sum', 'max'],
             'SK_DPD_DEF': ['sum', 'max'],
@@ -82,32 +83,21 @@ class Credit(object):
             'AMT_DRAWINGS_ATM_CURRENT': ['mean'],
 
             'AMT_BALANCE_PER_LMT': ['max', 'mean'],
+            'AMT_CREDIT_LIMIT_ACTUAL': ['mean'],
+        }
+        agg12 = {
+            'AMT_BALANCE_PER_LMT': ['max', 'mean'],
+            'AMT_CREDIT_LIMIT_ACTUAL': ['mean']
+        }
+        agg6 = {
+            'AMT_BALANCE_PER_LMT': ['min', 'max'],
             'AMT_CREDIT_LIMIT_ACTUAL': ['mean']
         }
 
-        credit_agg = self.credit.groupby('SK_ID_CURR').agg({**num_aggregations})
-        credit_agg.columns = features_common.make_agg_names('credit_', credit_agg.columns.tolist())
-        credit_agg.reset_index(inplace=True)
-        credit_agg['CC_COUNT'] = self.credit.groupby('SK_ID_CURR').size()
-
         df = self._aggregate_by_prev(df)
 
-        # 集計期間を絞る
-        # TODO: この集計期間で他のCreditも試す
-        c_agg12 = self.credit[self.credit['MONTHS_BALANCE'] >= -12].groupby('SK_ID_CURR').agg({
-            'AMT_BALANCE_PER_LMT': ['max','mean'],
-            'AMT_CREDIT_LIMIT_ACTUAL': ['mean']
-        })
-        c_agg12.columns = features_common.make_agg_names('credit12_', c_agg12.columns.tolist())
-        c_agg12.reset_index(inplace=True)
-        df = pd.merge(df, c_agg12, on='SK_ID_CURR', how='left')
+        df = features_common.aggregate(df, agg, self.credit, 'credit_', count_column='CC_COUNT')
+        df = features_common.aggregate(df, agg12, self.credit.query('MONTHS_BALANCE >= -12'), 'credit12_', count_column=None)
+        df = features_common.aggregate(df, agg6, self.credit.query('MONTHS_BALANCE >= -6'), 'credit6_', count_column=None)
 
-        c_agg6 = self.credit[self.credit['MONTHS_BALANCE'] >= -6].groupby('SK_ID_CURR').agg({
-            'AMT_BALANCE_PER_LMT': ['min', 'max'],
-            'AMT_CREDIT_LIMIT_ACTUAL': ['mean']
-        })
-        c_agg6.columns = features_common.make_agg_names('credit6_', c_agg6.columns.tolist())
-        c_agg6.reset_index(inplace=True)
-        df = pd.merge(df, c_agg6, on='SK_ID_CURR', how='left')
-
-        return pd.merge(df, credit_agg, on='SK_ID_CURR', how='left')
+        return df
