@@ -17,6 +17,16 @@ class Install(object):
             self.df = pd.read_feather(file)
             self.transformed = True
 
+        prev = pd.read_feather('../input/previous_application.f')
+        prev = prev[['SK_ID_PREV','NAME_CONTRACT_TYPE']]
+        self.df = pd.merge(self.df, prev, on='SK_ID_PREV', how='left')
+        del prev
+
+        credit = pd.read_feather('../input/credit_card_balance.f')
+        credit_ids = credit.SK_ID_PREV.unique()
+        self.df['is_credit'] = self.df.SK_ID_PREV.isin(credit_ids).astype(np.int32)
+        del credit
+
     @classmethod
     def from_cache(cls):
         print('install loading from cache...')
@@ -89,7 +99,7 @@ class Install(object):
                                                   'min',
                                                   'FIRST_PAYMENT')
 
-    def aggregate(self, df):
+    def aggregate(self, df_base):
         print('aggregate: install')
 
         # full period
@@ -135,10 +145,14 @@ class Install(object):
             'DAYS_ENTRY_PAYMENT': ['sum'],
         }
 
-        df = features_common.aggregate(df, agg_full, self.df, 'ins_')
+        df_base = features_common.aggregate(df_base, agg_full, self.df, 'ins_')
+
+        df_base = features_common.aggregate(df_base, agg_full, self.df.query('NAME_CONTRACT_TYPE == "Consumer loans"'), 'ins_consumer_')
+        df_base = features_common.aggregate(df_base, agg_full, self.df.query('NAME_CONTRACT_TYPE == "Cash loans"'), 'ins_cash_')
+        df_base = features_common.aggregate(df_base, agg_full, self.df.query('is_credit == 1'), 'ins_credit_')
 
         # note: 720, 90daysを足してもスコア上がらず。countを足すのもダメ。
-        df = features_common.aggregate(df, agg_365, self.df.query('DAYS_ENTRY_PAYMENT >= -365'), 'ins365_')
-        df = features_common.aggregate(df, agg_180, self.df.query('DAYS_ENTRY_PAYMENT >= -180'), 'ins180_')
+        df_base = features_common.aggregate(df_base, agg_365, self.df.query('DAYS_ENTRY_PAYMENT >= -365'), 'ins365_')
+        df_base = features_common.aggregate(df_base, agg_180, self.df.query('DAYS_ENTRY_PAYMENT >= -180'), 'ins180_')
 
-        return df
+        return df_base

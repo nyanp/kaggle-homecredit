@@ -12,7 +12,7 @@ class Bureau(object):
             self.transformed = False
         else:
             self.df = pd.read_feather(bureau)
-            self.balance = pd.read_feather('../input/bureau_balance.f')
+            self.balance = pd.read_feather(bb)
             self.transformed = True
 
     @classmethod
@@ -24,7 +24,6 @@ class Bureau(object):
         if self.transformed:
             return
         self.df['AMT_CREDIT_SUM'].replace(0, np.nan, inplace=True)
-        #self.df['AMT_CREDIT_SUM_DEBT'].fillna(0, inplace=True)
         self.df['AMT_CREDIT_SUM_DEBT'].replace(0, np.nan, inplace=True)
 
     def transform(self):
@@ -57,12 +56,6 @@ class Bureau(object):
     
         # 総額と1回あたり支払額の比率
         bureau['AMT_CREDIT_ANNUITY_PERC'] = bureau['AMT_ANNUITY'] / bureau['AMT_CREDIT_SUM']
-
-        # TODO: こっちだけで良さそうなら前処理へ。
-        b_replaced = bureau.copy()
-        b_replaced['AMT_CREDIT_SUM_DEBT'].replace(0, np.nan, inplace=True)
-        bureau['AMT_CREDIT_DEBT_PERC_NZ'] = b_replaced['AMT_CREDIT_SUM_DEBT'] / b_replaced['AMT_CREDIT_SUM']
-        bureau['AMT_CREDIT_DEBT_DIFF_NZ'] = b_replaced['AMT_CREDIT_SUM'] - b_replaced['AMT_CREDIT_SUM_DEBT']
 
         self.df = bureau
         self.balance = bureau_balance
@@ -114,12 +107,8 @@ class Bureau(object):
 
         # カテゴリ別とステータス別に分けておく。
 
-        agg_active = agg.copy()
-        agg_active['AMT_CREDIT_DEBT_PERC_NZ'] = ['min','max']
-        agg_active['AMT_CREDIT_DEBT_DIFF_NZ'] = ['sum']
-
         df_base = features_common.aggregate(df_base, agg, b, 'b_')
-        df_base = features_common.aggregate(df_base, agg_active, b.query('CREDIT_ACTIVE == "Active"'), 'b_active_')
+        df_base = features_common.aggregate(df_base, agg, b.query('CREDIT_ACTIVE == "Active"'), 'b_active_')
         df_base = features_common.aggregate(df_base, agg, b.query('CREDIT_ACTIVE == "Closed"'), 'b_closed_')
         df_base = features_common.aggregate(df_base, agg, b.query('CREDIT_TYPE == "Consumer credit"'), 'b_consumer_')
         df_base = features_common.aggregate(df_base, agg, b.query('CREDIT_TYPE == "Credit card"'), 'b_credit_')
@@ -127,8 +116,8 @@ class Bureau(object):
         df_base = features_common.aggregate(df_base, agg, b.query('CREDIT_TYPE == "Mortgage"'), 'b_mortage_')
         df_base = features_common.aggregate(df_base, agg, b.query('CREDIT_TYPE == "Microloan"'), 'b_micro_')
 
-        df_base = features_common.aggregate(df_base, agg_active, b.query('DAYS_CREDIT >= -720'), 'b_720_')
-        df_base = features_common.aggregate(df_base, agg_active, b.query('DAYS_CREDIT >= -365'), 'b_365_')
+        df_base = features_common.aggregate(df_base, agg, b.query('DAYS_CREDIT >= -720'), 'b_720_')
+        df_base = features_common.aggregate(df_base, agg, b.query('DAYS_CREDIT >= -365'), 'b_365_')
 
         self.df = b
         return df_base

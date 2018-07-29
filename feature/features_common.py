@@ -20,6 +20,7 @@ def group_by_1(df, by, target, agg_func, column_name, merge=True):
 
 
 def aggregate(df, aggregations, target, prefix, key='SK_ID_CURR', count_column=None):
+    assert len(df) > 0 and len(target) > 0
     agg = target.groupby(key).agg({**aggregations})
     agg.columns = make_agg_names(prefix, agg.columns.tolist())
     agg.reset_index(inplace=True)

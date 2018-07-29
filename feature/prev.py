@@ -38,7 +38,7 @@ class Prev(object):
     def aggregate(self, df_base):
         print('aggregate: prev')
 
-        num_aggregations = {
+        agg = {
             'AMT_ANNUITY': ['max', 'mean'],
             'AMT_APPLICATION': ['max', 'mean'],
             'AMT_CREDIT': ['max', 'mean'],
@@ -54,20 +54,10 @@ class Prev(object):
             'CREDIT_TO_GOODS_RATIO': ['min', 'max', 'mean']
         }
 
-        p = self.df
-
-        p_approved = p[p.NAME_CONTRACT_STATUS == 'Approved']
-        p_refused = p[p.NAME_CONTRACT_STATUS == 'Refused']
-        p_cash = p[p.NAME_CONTRACT_TYPE == 'Cash loans']
-        p_consumer = p[p.NAME_CONTRACT_TYPE == 'Consumer loans']
-
-        for b, prefix in zip([p, p_approved, p_refused, p_cash, p_consumer],
-                             ['p_', 'p_approved_', 'p_refused_', 'p_cash_', 'p_consumer_']):
-            agg = b.groupby('SK_ID_CURR').agg(num_aggregations)
-            agg.columns = features_common.make_agg_names(prefix, agg.columns.tolist())
-            agg.reset_index(inplace=True)
-            df_base = pd.merge(df_base, agg, on='SK_ID_CURR', how='left')
-
-        self.df = p
+        df_base = features_common.aggregate(df_base, agg, self.df, 'p_')
+        df_base = features_common.aggregate(df_base, agg, self.df.query('NAME_CONTRACT_STATUS == "Approved"'), 'p_approved')
+        df_base = features_common.aggregate(df_base, agg, self.df.query('NAME_CONTRACT_STATUS == "Refused"'), 'p_refused')
+        df_base = features_common.aggregate(df_base, agg, self.df.query('NAME_CONTRACT_TYPE == "Cash loans"'), 'p_cash')
+        df_base = features_common.aggregate(df_base, agg, self.df.query('NAME_CONTRACT_TYPE == "Consumer loans"'), 'p_cunsumer')
 
         return df_base
