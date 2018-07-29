@@ -44,14 +44,16 @@ class LGBM(object):
                 'num_leaves': 32,
                 'learning_rate': 0.04,
                 'colsample_bytree': 0.2,
-                'subsample': 0.872,
                 'max_depth': 8,
                 'reg_alpha': 0.04,
                 'reg_lambda': 0.073,
                 'min_split_gain': 0.0222415,
-                'min_child_weight': 80,
+                'min_child_weight': 110,
+                'top_rate': 0.3,
+                'other_rate': 0.1,
                 'metric': 'auc',
-                'n_estimators': 10000
+                'n_estimators': 10000,
+                'boosting_type': 'goss'
             }
         else:
             self.param = param
@@ -167,6 +169,8 @@ class LGBM(object):
 
 if __name__ == "__main__":
 
+
+
     #for seed in range(30, 50):
-    #    m = LGBM(name='lgbm_m6_kseed{}'.format(seed), kfold_seed=seed, comment='PREV_TO_CURR_ANNUITY_RATIO削除、cashのirregular-contractの数を追加')
-    #    m.cv()
+    m = LGBM(name='lgbm_m8_goss', comment='goss, top_rate,other_rate調整, lr大き目')
+    m.cv()
