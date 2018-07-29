@@ -6,7 +6,7 @@ import pos_cash
 import install
 import prev
 import time
-
+import zero_importance
 
 class Feature(object):
     def __init__(self, update='all'):
@@ -48,6 +48,11 @@ class Feature(object):
                       'FLAG_DOCUMENT_19', 'FLAG_DOCUMENT_2', 'FLAG_DOCUMENT_20', 'FLAG_DOCUMENT_21', 'FLAG_DOCUMENT_4',
                       'FLAG_DOCUMENT_7', 'FLAG_DOCUMENT_9', 'FLAG_MOBIL'
                       ], axis=1, inplace=True)
+
+        drops = [c for c in zero_importance.useless_features if c in self.df]
+        print('drop useless columns: {}'.format(drops))
+
+        self.df.drop(drops, axis=1, inplace=True)
 
     def _load_exotic(self):
         d = pd.read_feather('../model/predicted_dpd.f')

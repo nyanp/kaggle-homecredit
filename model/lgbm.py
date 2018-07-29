@@ -172,6 +172,6 @@ if __name__ == "__main__":
 
 
     #for seed in range(30, 50):
-    m = LGBM(name='lgbm_m12', comment='install x loan type')
+    m = LGBM(name='lgbm_m13', comment='drop useless columns')
     df, feather = m.cv()
     df.reset_index(drop=True).to_feather('{}_importance.f'.format(m.name))
