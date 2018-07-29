@@ -23,9 +23,9 @@ class Bureau(object):
     def fill(self):
         if self.transformed:
             return
-        #self.df['AMT_CREDIT_SUM'].fillna(0, inplace=True)
-
-        self.df['AMT_CREDIT_SUM_DEBT'].fillna(0, inplace=True)
+        self.df['AMT_CREDIT_SUM'].replace(0, np.nan, inplace=True)
+        #self.df['AMT_CREDIT_SUM_DEBT'].fillna(0, inplace=True)
+        self.df['AMT_CREDIT_SUM_DEBT'].replace(0, np.nan, inplace=True)
 
     def transform(self):
         if self.transformed:

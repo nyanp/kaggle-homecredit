@@ -172,5 +172,5 @@ if __name__ == "__main__":
 
 
     #for seed in range(30, 50):
-    m = LGBM(name='lgbm_m8_goss', comment='goss, top_rate,other_rate調整, lr大き目')
+    m = LGBM(name='lgbm_m9', comment='count(ins)')
     m.cv()
