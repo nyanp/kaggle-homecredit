@@ -44,7 +44,7 @@ class PosCash(object):
         }
 
         df_base = features_common.aggregate(df_base, num_aggregations, self.df, 'pos_')
-        #df = features_common.aggregate(df, num_aggregations, self.pos.query('MONTHS_BALANCE >= -12'), 'pos12_')
+        df_base = features_common.aggregate(df_base, num_aggregations, self.df.query('MONTHS_BALANCE >= -12'), 'pos12_')
         #df = features_common.aggregate(df, num_aggregations, self.pos.query('MONTHS_BALANCE >= -36'), 'pos36_')
 
         # additional

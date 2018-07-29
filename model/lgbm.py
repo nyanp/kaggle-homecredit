@@ -172,7 +172,7 @@ if __name__ == "__main__":
 
 
     #for seed in range(30, 50):
-    m = LGBM(name='lgbm_m22', comment='prev - OneHot Encoding')
+    m = LGBM(name='lgbm_m24', comment='porev - is_weekend')
     df, feather = m.cv()
     df.reset_index(drop=True).to_feather('{}_importance.f'.format(m.name))
 
