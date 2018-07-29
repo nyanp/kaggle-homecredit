@@ -37,14 +37,6 @@ class Prev(object):
         self.df = pd.concat([self.df, pd.get_dummies(self.df['NAME_YIELD_GROUP'], prefix='NAME_YIELD_GROUP')], axis=1)
 
         self.df = pd.concat([self.df, pd.get_dummies(self.df['NAME_GOODS_CATEGORY'], prefix='NAME_GOODS_CATEGORY')], axis=1)
-        self.df = pd.concat([self.df, pd.get_dummies(self.df['PRODUCT_COMBINATION'], prefix='PRODUCT_COMBINATION')], axis=1)
-
-        #app = pd.read_feather('../input/application_all.f')
-        #self.df = pd.merge(self.df, app[['SK_ID_CURR', 'TARGET']], on='SK_ID_CURR', how='left')
-
-        # target encoding
-        #self._target_encoding('NAME_GOODS_CATEGORY', 'TGT_NAME_GOODS_CATEGORY')
-        #self._target_encoding('PRODUCT_COMBINATION', 'TGT_PRODUCT_COMBINATION')
 
         self.df.to_feather('cache/prev.f')
         self.transformed = True

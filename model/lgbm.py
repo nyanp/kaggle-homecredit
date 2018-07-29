@@ -172,6 +172,14 @@ if __name__ == "__main__":
 
 
     #for seed in range(30, 50):
-    m = LGBM(name='lgbm_m17', comment='prev - NAME_YIELD_GROUP')
+    m = LGBM(name='lgbm_m22', comment='prev - OneHot Encoding')
     df, feather = m.cv()
     df.reset_index(drop=True).to_feather('{}_importance.f'.format(m.name))
+
+    low_importance = df[df.importance == 0].groupby('feature')\
+        .count()\
+        .reset_index()\
+        .sort_values(by='importance', ascending=False)\
+        .query('importance >= 4')
+
+    print(low_importance)

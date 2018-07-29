@@ -100,5 +100,13 @@ useless_features = [
     "FLAG_DOCUMENT_5",
     "HOUSETYPE_MODE",
     "p_cashmax(AMT_DOWN_PAYMENT)",
-    "REG_REGION_NOT_LIVE_REGION"
+    "REG_REGION_NOT_LIVE_REGION",
+
+    'p_cashmean(NAME_GOODS_CATEGORY_Computers)',
+    'p_cashmax(RATE_DOWN_PAYMENT)',
+    'b_consumer_sum(CREDIT_DAY_OVERDUE)',
+    'p_cashmean(NAME_GOODS_CATEGORY_Consumer Electronics)',
+    'p_cashmean(NAME_GOODS_CATEGORY_Mobile)',
+    'b_closed_mean(AMT_CREDIT_SUM_OVERDUE)',
+    'p_cashmean(NAME_GOODS_CATEGORY_XNA)'
 ]
