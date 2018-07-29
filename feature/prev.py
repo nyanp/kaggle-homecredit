@@ -27,8 +27,13 @@ class Prev(object):
         self.df['CREDIT_TO_ANNUITY_RATIO'] = self.df['AMT_CREDIT'] / self.df['AMT_ANNUITY']
         self.df['CREDIT_TO_GOODS_RATIO'] = self.df['AMT_GOODS_PRICE'] / self.df['AMT_CREDIT']
         self.df['APP_CREDIT_PERC'] = self.df['AMT_APPLICATION'] / self.df['AMT_CREDIT']
+
+        self.df = pd.concat([self.df, pd.get_dummies(self.df['NAME_YIELD_GROUP'], prefix='NAME_YIELD_GROUP')], axis=1)
+
         self.df.to_feather('cache/prev.f')
         self.transformed = True
+
+        app = pd.read_feather('../input/')
 
     @classmethod
     def from_cache(cls):
@@ -51,7 +56,13 @@ class Prev(object):
             'CNT_PAYMENT': ['mean', 'sum'],
 
             'CREDIT_TO_ANNUITY_RATIO': ['min', 'max', 'mean'],
-            'CREDIT_TO_GOODS_RATIO': ['min', 'max', 'mean']
+            'CREDIT_TO_GOODS_RATIO': ['min', 'max', 'mean'],
+
+            'NAME_YIELD_GROUP_high': ['mean'],
+            'NAME_YIELD_GROUP_low_action': ['mean'],
+            'NAME_YIELD_GROUP_low_normal': ['mean'],
+            #'NAME_YIELD_GROUP_middle': ['sum'],
+            #'NAME_YIELD_GROUP_XNA': ['sum']
         }
 
         df_base = features_common.aggregate(df_base, agg, self.df, 'p_')
@@ -59,5 +70,7 @@ class Prev(object):
         df_base = features_common.aggregate(df_base, agg, self.df.query('NAME_CONTRACT_STATUS == "Refused"'), 'p_refused')
         df_base = features_common.aggregate(df_base, agg, self.df.query('NAME_CONTRACT_TYPE == "Cash loans"'), 'p_cash')
         df_base = features_common.aggregate(df_base, agg, self.df.query('NAME_CONTRACT_TYPE == "Consumer loans"'), 'p_cunsumer')
+
+
 
         return df_base
