@@ -6,10 +6,10 @@ import numpy as np
 class Credit(object):
     def __init__(self, file=None):
         if file is None:
-            self.credit = pd.read_feather('../input/credit_card_balance.f')
+            self.df = pd.read_feather('../input/credit_card_balance.f')
             self.transformed = False
         else:
-            self.credit = pd.read_feather(file)
+            self.df = pd.read_feather(file)
             self.transformed = True
 
     @classmethod
@@ -20,24 +20,24 @@ class Credit(object):
     def fill(self):
         if self.transformed:
             return
-        self.credit['AMT_CREDIT_LIMIT_ACTUAL'].replace(0, np.nan, inplace=True)
+        self.df['AMT_CREDIT_LIMIT_ACTUAL'].replace(0, np.nan, inplace=True)
 
     def transform(self):
         if self.transformed:
             return
         # 利用額 / 限度額
         # ゼロを含むとノイズが増える。
-        self.credit['AMT_BALANCE_PER_LMT'] = self.credit['AMT_BALANCE'].replace(0, np.nan) / self.credit[
+        self.df['AMT_BALANCE_PER_LMT'] = self.df['AMT_BALANCE'].replace(0, np.nan) / self.df[
             'AMT_CREDIT_LIMIT_ACTUAL']
 
-        self.credit.to_feather('cache/credit.f')
+        self.df.to_feather('cache/credit.f')
         self.transformed = True
 
     def _aggregate_by_prev(self, df):
         # 1回のリボルビングローンの間で、クレジット限度額が何度も変更されていることがある。
         # TODO: あってる？
 
-        c_sorted = self.credit.sort_values(by=['SK_ID_CURR', 'SK_ID_PREV', 'MONTHS_BALANCE'], ascending=False)
+        c_sorted = self.df.sort_values(by=['SK_ID_CURR', 'SK_ID_PREV', 'MONTHS_BALANCE'], ascending=False)
 
         c_prev = features_common.group_by_1(c_sorted,
                                             'SK_ID_PREV',
@@ -51,7 +51,7 @@ class Credit(object):
         c_last.columns = ['SK_ID_PREV', 'CREDIT_LIMIT_LAST']
 
         c_prev = pd.merge(c_prev, c_last, on='SK_ID_PREV', how='left')
-        c_prev = pd.merge(c_prev, self.credit[['SK_ID_PREV', 'SK_ID_CURR']].drop_duplicates(), on='SK_ID_PREV',
+        c_prev = pd.merge(c_prev, self.df[['SK_ID_PREV', 'SK_ID_CURR']].drop_duplicates(), on='SK_ID_PREV',
                           how='left')
 
         c_prev['CREDIT_LIMIT_LAST_BY_MIN'] = c_prev['CREDIT_LIMIT_LAST'] / c_prev['CREDIT_LIMIT_MIN']
@@ -61,7 +61,7 @@ class Credit(object):
 
         return pd.merge(df, agg, on='SK_ID_CURR', how='left')
 
-    def aggregate(self, df):
+    def aggregate(self, df_base):
         print('aggregate: credit')
         agg = {
             'MONTHS_BALANCE': ['count', 'mean'],
@@ -94,10 +94,10 @@ class Credit(object):
             'AMT_CREDIT_LIMIT_ACTUAL': ['mean']
         }
 
-        df = self._aggregate_by_prev(df)
+        df_base = self._aggregate_by_prev(df_base)
 
-        df = features_common.aggregate(df, agg, self.credit, 'credit_', count_column='CC_COUNT')
-        df = features_common.aggregate(df, agg12, self.credit.query('MONTHS_BALANCE >= -12'), 'credit12_', count_column=None)
-        df = features_common.aggregate(df, agg6, self.credit.query('MONTHS_BALANCE >= -6'), 'credit6_', count_column=None)
+        df_base = features_common.aggregate(df_base, agg, self.df, 'credit_', count_column='CC_COUNT')
+        df_base = features_common.aggregate(df_base, agg12, self.df.query('MONTHS_BALANCE >= -12'), 'credit12_', count_column=None)
+        df_base = features_common.aggregate(df_base, agg6, self.df.query('MONTHS_BALANCE >= -6'), 'credit6_', count_column=None)
 
-        return df
+        return df_base

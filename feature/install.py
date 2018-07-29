@@ -6,15 +6,15 @@ import numpy as np
 class Install(object):
     def __init__(self, file=None):
         if file is None:
-            self.install = pd.read_feather('../input/installments_payments.f')
+            self.df = pd.read_feather('../input/installments_payments.f')
 
             # 最近の支払ほど上に。
-            self.install.sort_values(['SK_ID_CURR', 'SK_ID_PREV', 'DAYS_ENTRY_PAYMENT'], ascending=False, inplace=True)
-            self.install.reset_index(inplace=True, drop=True)
+            self.df.sort_values(['SK_ID_CURR', 'SK_ID_PREV', 'DAYS_ENTRY_PAYMENT'], ascending=False, inplace=True)
+            self.df.reset_index(inplace=True, drop=True)
 
             self.transformed = False
         else:
-            self.install = pd.read_feather(file)
+            self.df = pd.read_feather(file)
             self.transformed = True
 
     @classmethod
@@ -31,7 +31,7 @@ class Install(object):
 
         self._transform_per_payment()
 
-        ins = self.install
+        ins = self.df
 
         ins['PAYMENT_PERC'] = ins['AMT_PAYMENT'] / ins['AMT_INSTALMENT']
         ins['PAYMENT_DIFF'] = ins['AMT_INSTALMENT'] - ins['AMT_PAYMENT']
@@ -67,24 +67,24 @@ class Install(object):
         ins['DAYS_ENTRY_PAYMENT_INTERVAL'] = ins['DAYS_ENTRY_PAYMENT'] - ins.groupby('SK_ID_PREV')[
             'DAYS_ENTRY_PAYMENT'].shift(-1)
 
-        self.install = ins
+        self.df = ins
 
-        self.install.to_feather('cache/install.f')
+        self.df.to_feather('cache/install.f')
         self.transformed = True
 
     def _transform_per_payment(self):
         # paymentごとの特徴量
 
         # 1回の支払予定を何回に分割して支払っているか
-        self.install = features_common.group_by_1(self.install,
-                                                  ['SK_ID_PREV', 'NUM_INSTALMENT_NUMBER', 'NUM_INSTALMENT_VERSION'],
+        self.df = features_common.group_by_1(self.df,
+                                             ['SK_ID_PREV', 'NUM_INSTALMENT_NUMBER', 'NUM_INSTALMENT_VERSION'],
                                                   'AMT_PAYMENT',
                                                   'count',
                                                   'N_PAYMENTS')
 
         # 最初の支払日。単独では使わない
-        self.install = features_common.group_by_1(self.install,
-                                                  ['SK_ID_PREV', 'NUM_INSTALMENT_NUMBER', 'NUM_INSTALMENT_VERSION'],
+        self.df = features_common.group_by_1(self.df,
+                                             ['SK_ID_PREV', 'NUM_INSTALMENT_NUMBER', 'NUM_INSTALMENT_VERSION'],
                                                   'DAYS_ENTRY_PAYMENT',
                                                   'min',
                                                   'FIRST_PAYMENT')
@@ -135,12 +135,10 @@ class Install(object):
             'DAYS_ENTRY_PAYMENT': ['sum'],
         }
 
-        df = features_common.aggregate(df, agg_full, self.install, 'ins_')
+        df = features_common.aggregate(df, agg_full, self.df, 'ins_')
 
-        # note: 720, 90daysを足してもスコア上がらず。
-        df = features_common.aggregate(df, agg_365, self.install.query('DAYS_ENTRY_PAYMENT >= -365'), 'ins365_')
-        df = features_common.aggregate(df, agg_180, self.install.query('DAYS_ENTRY_PAYMENT >= -180'), 'ins180_')
-
-        #df['ins_mean(DPD)_365_to_all'] = df['ins365_mean(DPD)'] / df['ins_mean(DPD)']
+        # note: 720, 90daysを足してもスコア上がらず。countを足すのもダメ。
+        df = features_common.aggregate(df, agg_365, self.df.query('DAYS_ENTRY_PAYMENT >= -365'), 'ins365_')
+        df = features_common.aggregate(df, agg_180, self.df.query('DAYS_ENTRY_PAYMENT >= -180'), 'ins180_')
 
         return df

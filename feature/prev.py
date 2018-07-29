@@ -6,28 +6,28 @@ import features_common
 class Prev(object):
     def __init__(self, file=None):
         if file is None:
-            self.prev = pd.read_feather('../input/previous_application.f')
+            self.df = pd.read_feather('../input/previous_application.f')
             self.transformed = False
         else:
-            self.prev = pd.read_feather(file)
+            self.df = pd.read_feather(file)
             self.transformed = True
 
     def fill(self):
         if self.transformed:
             return
-        self.prev['DAYS_FIRST_DRAWING'].replace(365243, np.nan, inplace=True)
-        self.prev['DAYS_FIRST_DUE'].replace(365243, np.nan, inplace=True)
-        self.prev['DAYS_LAST_DUE_1ST_VERSION'].replace(365243, np.nan, inplace=True)
-        self.prev['DAYS_LAST_DUE'].replace(365243, np.nan, inplace=True)
-        self.prev['DAYS_TERMINATION'].replace(365243, np.nan, inplace=True)
+        self.df['DAYS_FIRST_DRAWING'].replace(365243, np.nan, inplace=True)
+        self.df['DAYS_FIRST_DUE'].replace(365243, np.nan, inplace=True)
+        self.df['DAYS_LAST_DUE_1ST_VERSION'].replace(365243, np.nan, inplace=True)
+        self.df['DAYS_LAST_DUE'].replace(365243, np.nan, inplace=True)
+        self.df['DAYS_TERMINATION'].replace(365243, np.nan, inplace=True)
 
     def transform(self):
         if self.transformed:
             return
-        self.prev['CREDIT_TO_ANNUITY_RATIO'] = self.prev['AMT_CREDIT'] / self.prev['AMT_ANNUITY']
-        self.prev['CREDIT_TO_GOODS_RATIO'] = self.prev['AMT_GOODS_PRICE'] / self.prev['AMT_CREDIT']
-        self.prev['APP_CREDIT_PERC'] = self.prev['AMT_APPLICATION'] / self.prev['AMT_CREDIT']
-        self.prev.to_feather('cache/prev.f')
+        self.df['CREDIT_TO_ANNUITY_RATIO'] = self.df['AMT_CREDIT'] / self.df['AMT_ANNUITY']
+        self.df['CREDIT_TO_GOODS_RATIO'] = self.df['AMT_GOODS_PRICE'] / self.df['AMT_CREDIT']
+        self.df['APP_CREDIT_PERC'] = self.df['AMT_APPLICATION'] / self.df['AMT_CREDIT']
+        self.df.to_feather('cache/prev.f')
         self.transformed = True
 
     @classmethod
@@ -35,7 +35,7 @@ class Prev(object):
         print('prev loading from cache...')
         return cls('cache/prev.f')
 
-    def aggregate(self, df):
+    def aggregate(self, df_base):
         print('aggregate: prev')
 
         num_aggregations = {
@@ -54,7 +54,7 @@ class Prev(object):
             'CREDIT_TO_GOODS_RATIO': ['min', 'max', 'mean']
         }
 
-        p = self.prev
+        p = self.df
 
         p_approved = p[p.NAME_CONTRACT_STATUS == 'Approved']
         p_refused = p[p.NAME_CONTRACT_STATUS == 'Refused']
@@ -66,8 +66,8 @@ class Prev(object):
             agg = b.groupby('SK_ID_CURR').agg(num_aggregations)
             agg.columns = features_common.make_agg_names(prefix, agg.columns.tolist())
             agg.reset_index(inplace=True)
-            df = pd.merge(df, agg, on='SK_ID_CURR', how='left')
+            df_base = pd.merge(df_base, agg, on='SK_ID_CURR', how='left')
 
-        self.prev = p
+        self.df = p
 
-        return df
+        return df_base

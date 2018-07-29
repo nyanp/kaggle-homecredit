@@ -6,12 +6,12 @@ import features_common
 class PosCash(object):
     def __init__(self, file=None):
         if file is None:
-            self.pos = pd.read_feather('../input/POS_CASH_balance.f')
-            self.pos.sort_values(by=['SK_ID_CURR', 'SK_ID_PREV', 'MONTHS_BALANCE'], ascending=False, inplace=True)
-            self.pos.reset_index(inplace=True, drop=True)
+            self.df = pd.read_feather('../input/POS_CASH_balance.f')
+            self.df.sort_values(by=['SK_ID_CURR', 'SK_ID_PREV', 'MONTHS_BALANCE'], ascending=False, inplace=True)
+            self.df.reset_index(inplace=True, drop=True)
             self.transformed = False
         else:
-            self.pos = pd.read_feather(file)
+            self.df = pd.read_feather(file)
             self.transformed = True
 
     @classmethod
@@ -27,13 +27,13 @@ class PosCash(object):
             return
 
         normal = ['Active','Completed','Signed','Approved']
-        self.pos['IRREGULAR_CONTRACT'] = self.pos.NAME_CONTRACT_STATUS.isin(normal).astype(np.int32)
-        print(self.pos.IRREGULAR_CONTRACT.value_counts())
+        self.df['IRREGULAR_CONTRACT'] = self.df.NAME_CONTRACT_STATUS.isin(normal).astype(np.int32)
+        print(self.df.IRREGULAR_CONTRACT.value_counts())
 
-        self.pos.to_feather('cache/pos.f')
+        self.df.to_feather('cache/pos.f')
         self.transformed = True
 
-    def aggregate(self, df):
+    def aggregate(self, df_base):
         print('aggregate: cash')
 
         num_aggregations = {
@@ -43,7 +43,7 @@ class PosCash(object):
             'IRREGULAR_CONTRACT': ['sum']
         }
 
-        df = features_common.aggregate(df, num_aggregations, self.pos, 'pos_')
+        df_base = features_common.aggregate(df_base, num_aggregations, self.df, 'pos_')
         #df = features_common.aggregate(df, num_aggregations, self.pos.query('MONTHS_BALANCE >= -12'), 'pos12_')
         #df = features_common.aggregate(df, num_aggregations, self.pos.query('MONTHS_BALANCE >= -36'), 'pos36_')
 
@@ -62,8 +62,8 @@ class PosCash(object):
             tail['CNT_INSTALMENT_AHEAD_RATIO'] = tail['ACTUAL_CNT_INSTALMENT'] / tail['PLANNED_CNT_INSTALMENT']
             return tail
 
-        pos_prev = calc_aheads(self.pos)
-        pos_prev12 = calc_aheads(self.pos[self.pos.MONTHS_BALANCE >= -12])
+        pos_prev = calc_aheads(self.df)
+        pos_prev12 = calc_aheads(self.df[self.df.MONTHS_BALANCE >= -12])
         pos_prev12.head()
 
         pos_agg = pos_prev.groupby('SK_ID_CURR').agg({
@@ -84,6 +84,6 @@ class PosCash(object):
 
         pos_all = pd.merge(pos_agg, pos12_agg, on='SK_ID_CURR', how='left')
 
-        df = pd.merge(df, pos_all, on='SK_ID_CURR', how='left')
+        df_base = pd.merge(df_base, pos_all, on='SK_ID_CURR', how='left')
 
-        return df
+        return df_base

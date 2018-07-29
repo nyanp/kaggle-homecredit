@@ -96,7 +96,7 @@ class Application(object):
 
         return pd.merge(df, df_ratio, on='SK_ID_CURR', how='left')
 
-    def _groupby_with_prev(self, df, prev):
+    def _groupby_with_prev(self, df_base, prev):
         # Organization、Occupationでグルーピングした平均との差
         # Currだけだとデータが少なくて精度があまり出ない
 
@@ -105,11 +105,11 @@ class Application(object):
         target_columns = ['AMT_ANNUITY', 'AMT_GOODS_PRICE', 'AMT_CREDIT', 'NAME_CONTRACT_TYPE']
         group_columns = ['ORGANIZATION_TYPE', 'OCCUPATION_TYPE']
 
-        df_amt = df[['SK_ID_CURR']+target_columns+group_columns].copy()
+        df_amt = df_base[['SK_ID_CURR'] + target_columns + group_columns].copy()
         prev_amt = prev[['SK_ID_CURR']+target_columns].copy()
 
         prev_amt = \
-            pd.merge(prev_amt, df[['SK_ID_CURR']+group_columns], on='SK_ID_CURR', how='left')[df_amt.columns]
+            pd.merge(prev_amt, df_base[['SK_ID_CURR'] + group_columns], on='SK_ID_CURR', how='left')[df_amt.columns]
         prev_amt['is_prev'] = 1
 
         amt_ttl = pd.concat([df_amt, prev_amt])
@@ -137,13 +137,13 @@ class Application(object):
         amt_ttl.drop(['AMT_ANNUITY', 'AMT_GOODS_PRICE', 'AMT_CREDIT', 'NAME_CONTRACT_TYPE',
                       'ORGANIZATION_TYPE', 'OCCUPATION_TYPE', 'is_prev'], axis=1, inplace=True)
 
-        return pd.merge(df, amt_ttl, on='SK_ID_CURR', how='left')
+        return pd.merge(df_base, amt_ttl, on='SK_ID_CURR', how='left')
 
-    def transform_with_others(self, df, prev):
+    def transform_with_others(self, df_base, prev):
         print('transform with others')
         # 他のテーブルとの総合的な特徴
-        df = self._prev_to_curr_credit_annuity_ratio(df, prev)
+        df_base = self._prev_to_curr_credit_annuity_ratio(df_base, prev)
 
-        print(df.shape)
+        print(df_base.shape)
         #
-        return self._groupby_with_prev(df, prev)
+        return self._groupby_with_prev(df_base, prev)

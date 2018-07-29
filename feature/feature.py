@@ -32,7 +32,7 @@ class Feature(object):
             df = v.aggregate(df)
             print('{} merged. shape: {}'.format(k, df.shape))
 
-        df = tables['app'].transform_with_others(df, tables['prev'].prev)
+        df = tables['app'].transform_with_others(df, tables['prev'].df)
         print('transform finished. {}'.format(df.shape))
 
         self.tables = tables
@@ -59,7 +59,7 @@ class Feature(object):
 
 if __name__ == "__main__":
     start = time.time()
-    f = Feature(update=[])
+    f = Feature(update=['bureau'])
 
     print(f.df.shape)
 
