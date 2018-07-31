@@ -12,6 +12,8 @@ class Credit(object):
             self.df = pd.read_feather(file)
             self.transformed = True
 
+        self.df.sort_values(by=['SK_ID_CURR', 'SK_ID_PREV', 'MONTHS_BALANCE'], ascending=False, inplace=True)
+
     @classmethod
     def from_cache(cls):
         print('credit loading from cache...')
@@ -33,7 +35,7 @@ class Credit(object):
         self.df.to_feather('cache/credit.f')
         self.transformed = True
 
-    def _aggregate_by_prev(self, df):
+    def _aggregate_by_prev(self, df_base):
         # 1回のリボルビングローンの間で、クレジット限度額が何度も変更されていることがある。
         # TODO: あってる？
 
@@ -59,7 +61,18 @@ class Credit(object):
         agg = features_common.group_by_1(c_prev, 'SK_ID_CURR', 'CREDIT_LIMIT_LAST_BY_MIN', 'mean',
                                          'credit_prev_mean(CREDIT_LIMIT_LAST_BY_MIN)', merge=False)
 
-        return pd.merge(df, agg, on='SK_ID_CURR', how='left')
+        df_base = pd.merge(df_base, agg, on='SK_ID_CURR', how='left')
+
+        # 現在Activeなクレジットの返済残高の合計
+        df_active_balance = features_common.extract_active_balance(self.df)
+        df_active_loans = df_active_balance.groupby('SK_ID_PREV')\
+                                           .head(1)[['SK_ID_CURR', 'SK_ID_PREV', 'AMT_BALANCE']]\
+                                           .rename(columns={'AMT_BALANCE': 'AMT_CREDIT_SUM_DEBT_CREDIT'})
+
+        agg = df_active_loans.groupby('SK_ID_CURR')['AMT_CREDIT_SUM_DEBT_CREDIT'].sum().reset_index()
+        agg.columns = ['SK_ID_CURR', 'SUM(AMT_DEBT_ACTIVE_LOAN_CREDIT)']
+
+        return pd.merge(df_base, agg, on='SK_ID_CURR', how='left')
 
     def aggregate(self, df_base):
         print('aggregate: credit')

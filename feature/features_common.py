@@ -27,3 +27,19 @@ def aggregate(df, aggregations, target, prefix, key='SK_ID_CURR', count_column=N
     if count_column is not None:
         agg[count_column] = target.groupby(key).size()
     return pd.merge(df, agg, on=key, how='left')
+
+
+def extract_active_balance(df, threshold=-12):
+    """
+    POS_CASH/Credit_Balanceの中から、ActiveなローンのBalanceデータだけを抜いてくる
+    最新のMONTHS_BALANCEがthresholdより古いものは、Activeであっても無視
+
+    :param df:
+    :param threshold:
+    :return:
+    """
+    prev_id_closed = df[df.NAME_CONTRACT_STATUS == 'Completed'].SK_ID_PREV.unique()
+    df_last = df.groupby('SK_ID_PREV')['MONTHS_BALANCE'].max().reset_index()
+    prev_id_recent = df_last[df_last['MONTHS_BALANCE'] >= threshold].SK_ID_PREV
+
+    return df[~df.SK_ID_PREV.isin(prev_id_closed) & df.SK_ID_PREV.isin(prev_id_recent)].reset_index(drop=True)

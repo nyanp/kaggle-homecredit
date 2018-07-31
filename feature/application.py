@@ -139,11 +139,15 @@ class Application(object):
 
         return pd.merge(df_base, amt_ttl, on='SK_ID_CURR', how='left')
 
-    def transform_with_others(self, df_base, prev):
+    def transform_with_others(self, df_base, prev, pos, credit):
         print('transform with others')
         # 他のテーブルとの総合的な特徴
         df_base = self._prev_to_curr_credit_annuity_ratio(df_base, prev)
 
         print(df_base.shape)
         #
+        df_base['SUM(AMT_DEBT_ACTIVE_ALL)'] = df_base['SUM(AMT_DEBT_ACTIVE_LOAN_POS)'].fillna(0) + df_base['SUM(AMT_DEBT_ACTIVE_LOAN_CREDIT)'].fillna(0)
+        df_base['CURRENT_DEBT_TO_CREDIT_RATIO'] = df_base['SUM(AMT_DEBT_ACTIVE_ALL)'] / df_base['AMT_CREDIT']
+        df_base['CURRENT_DEBT_TO_ANNUITY_RATIO'] = df_base['SUM(AMT_DEBT_ACTIVE_ALL)'] / df_base['AMT_ANNUITY']
+
         return self._groupby_with_prev(df_base, prev)

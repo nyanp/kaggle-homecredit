@@ -39,6 +39,7 @@ class Prev(object):
         self.df = pd.concat([self.df, pd.get_dummies(self.df['NAME_GOODS_CATEGORY'], prefix='NAME_GOODS_CATEGORY')], axis=1)
 
         self.df['IS_WEEKEND_APPR'] = self.df.WEEKDAY_APPR_PROCESS_START.isin(['SUNDAY', 'SATURDAY']).astype(np.int32)
+        self.df['NAME_TYPE_SUITE_Unaccompanied'] = (self.df.NAME_TYPE_SUITE == 'Unaccompanied').astype(np.int32)
 
         self.df.to_feather('cache/prev.f')
         self.transformed = True
@@ -78,6 +79,8 @@ class Prev(object):
             'NAME_GOODS_CATEGORY_Consumer Electronics': ['mean'],
             'NAME_GOODS_CATEGORY_Computers': ['mean'],
 
+            'NAME_TYPE_SUITE_Unaccompanied': ['mean'],
+
             'IS_WEEKEND_APPR': ['mean']
         }
 
@@ -87,7 +90,5 @@ class Prev(object):
         df_base = features_common.aggregate(df_base, agg, self.df.query('NAME_CONTRACT_STATUS == "Refused"'), 'p_refused')
         df_base = features_common.aggregate(df_base, agg, self.df.query('NAME_CONTRACT_TYPE == "Cash loans"'), 'p_cash')
         df_base = features_common.aggregate(df_base, agg, self.df.query('NAME_CONTRACT_TYPE == "Consumer loans"'), 'p_cunsumer')
-
-
 
         return df_base
