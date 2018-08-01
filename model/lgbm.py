@@ -175,7 +175,7 @@ if __name__ == "__main__":
 
 
     #for seed in range(30, 50):
-    m = LGBM(name='lgbm_m29', comment='aggregate from active pos cash')
+    m = LGBM(name='lgbm_m30', comment='aggregate from active credit')
     df, feather = m.cv()
     df.reset_index(drop=True).to_feather('{}_importance.f'.format(m.name))
 

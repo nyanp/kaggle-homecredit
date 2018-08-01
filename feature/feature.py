@@ -64,7 +64,7 @@ class Feature(object):
 
 if __name__ == "__main__":
     start = time.time()
-    f = Feature(update=['bureau'])
+    f = Feature(update=[])
 
     print(f.df.shape)
 

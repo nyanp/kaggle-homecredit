@@ -64,13 +64,38 @@ class Credit(object):
         df_base = pd.merge(df_base, agg, on='SK_ID_CURR', how='left')
 
         # 現在Activeなクレジットの返済残高の合計
+        prev = pd.read_feather('../input/previous_application.f')
+
         df_active_balance = features_common.extract_active_balance(self.df)
         df_active_loans = df_active_balance.groupby('SK_ID_PREV')\
                                            .head(1)[['SK_ID_CURR', 'SK_ID_PREV', 'AMT_BALANCE']]\
                                            .rename(columns={'AMT_BALANCE': 'AMT_CREDIT_SUM_DEBT_CREDIT'})
 
-        agg = df_active_loans.groupby('SK_ID_CURR')['AMT_CREDIT_SUM_DEBT_CREDIT'].sum().reset_index()
-        agg.columns = ['SK_ID_CURR', 'SUM(AMT_DEBT_ACTIVE_LOAN_CREDIT)']
+        df_active_loans = pd.merge(df_active_loans, prev.drop('SK_ID_CURR',axis=1), on='SK_ID_PREV', how='left')
+
+        df_active_loans['NAME_YIELD_GROUP_high'] = (df_active_loans.NAME_YIELD_GROUP == 'high').astype(np.int32)
+        df_active_loans['NAME_YIELD_GROUP_low_normal'] = (df_active_loans.NAME_YIELD_GROUP == 'low_normal').astype(np.int32)
+        df_active_loans['NAME_YIELD_GROUP_low_action'] = (df_active_loans.NAME_YIELD_GROUP == 'low_action').astype(np.int32)
+        df_active_loans['DAYS_FIRST_DUE'].replace(365243, np.nan, inplace=True)
+        df_active_loans['DAYS_LAST_DUE_1ST_VERSION'].replace(365243, np.nan, inplace=True)
+
+        agg = {
+            'DAYS_LAST_DUE_1ST_VERSION': ['mean'],
+            'DAYS_FIRST_DUE': ['mean'],
+            'CNT_PAYMENT': ['mean'],
+            'AMT_ANNUITY': ['sum'],
+            'AMT_GOODS_PRICE': ['sum'],
+            'NAME_YIELD_GROUP_high': ['mean'],
+            'NAME_YIELD_GROUP_low_normal': ['mean'],
+            'NAME_YIELD_GROUP_low_action': ['mean'],
+            'AMT_CREDIT_SUM_DEBT_CREDIT': ['sum']
+        }
+
+        agg = df_active_loans.groupby('SK_ID_CURR').agg(agg)
+        agg.columns = features_common.make_agg_names('credit_active_', agg)
+        agg.reset_index(inplace=True)
+
+        agg.rename(columns={'credit_active_sum(AMT_CREDIT_SUM_DEBT_CREDIT)' : 'SUM(AMT_DEBT_ACTIVE_LOAN_CREDIT)'}, inplace=True)
 
         return pd.merge(df_base, agg, on='SK_ID_CURR', how='left')
 
