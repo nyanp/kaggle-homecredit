@@ -70,16 +70,19 @@ class LGBM(object):
         if remove_columns is not None:
             self.x.drop(remove_columns, axis=1, inplace=True)
 
+
         for c in ['SK_ID_CURR', 'SK_ID_BUREAU', 'SK_ID_PREV', 'index']:
             if c in self.x:
                 print('drop {}'.format(c))
                 self.x.drop(c, axis=1, inplace=True)
 
         print('shape: {}'.format(self.x.shape))
+
         self.x_train, self.y_train, self.x_test = prep_and_split(self.x)
 
         self.x_train.reset_index(drop=True,inplace=True)
         self.x_test.reset_index(drop=True, inplace=True)
+
 
     # Display/plot feature importance
     def display_importances(self, feature_importance_df_, filename, n=100):
@@ -172,7 +175,7 @@ if __name__ == "__main__":
 
 
     #for seed in range(30, 50):
-    m = LGBM(name='lgbm_m24', comment='porev - is_weekend')
+    m = LGBM(name='lgbm_m29', comment='aggregate from active pos cash')
     df, feather = m.cv()
     df.reset_index(drop=True).to_feather('{}_importance.f'.format(m.name))
 

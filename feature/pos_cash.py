@@ -66,13 +66,51 @@ class PosCash(object):
         df_active_balance = features_common.extract_active_balance(self.df)
         df_active_loans = df_active_balance.groupby('SK_ID_PREV')[['SK_ID_CURR', 'CNT_INSTALMENT_FUTURE']].min().reset_index()
 
-        df_active_loans = pd.merge(df_active_loans, prev[['SK_ID_PREV', 'AMT_ANNUITY']], on='SK_ID_PREV', how='left')
+        df_active_loans = pd.merge(df_active_loans, prev.drop('SK_ID_CURR',axis=1), on='SK_ID_PREV', how='left')
         df_active_loans['AMT_CREDIT_SUM_DEBT_POS'] = df_active_loans['AMT_ANNUITY'] * df_active_loans['CNT_INSTALMENT_FUTURE']
 
-        agg = df_active_loans.groupby('SK_ID_CURR')['AMT_CREDIT_SUM_DEBT_POS'].sum().reset_index()
-        agg.columns = ['SK_ID_CURR', 'SUM(AMT_DEBT_ACTIVE_LOAN_POS)']
+        df_active_loans['NAME_YIELD_GROUP_high'] = (df_active_loans.NAME_YIELD_GROUP == 'high').astype(np.int32)
+        df_active_loans['NAME_YIELD_GROUP_low_normal'] = (df_active_loans.NAME_YIELD_GROUP == 'low_normal').astype(np.int32)
+        df_active_loans['NAME_YIELD_GROUP_low_action'] = (df_active_loans.NAME_YIELD_GROUP == 'low_action').astype(np.int32)
+        df_active_loans['DAYS_FIRST_DUE'].replace(365243, np.nan, inplace=True)
+        df_active_loans['DAYS_LAST_DUE_1ST_VERSION'].replace(365243, np.nan, inplace=True)
 
-        return pd.merge(df_base, agg, on='SK_ID_CURR', how='left')
+        agg = {
+            'DAYS_LAST_DUE_1ST_VERSION': ['mean'],
+            'DAYS_FIRST_DUE': ['mean'],
+            'CNT_PAYMENT': ['mean'],
+            'AMT_ANNUITY': ['sum'],
+            'AMT_GOODS_PRICE': ['sum'],
+            'NAME_YIELD_GROUP_high': ['mean'],
+            'NAME_YIELD_GROUP_low_normal': ['mean'],
+            'NAME_YIELD_GROUP_low_action': ['mean'],
+            'AMT_CREDIT_SUM_DEBT_POS': ['sum']
+        }
+
+        agg = df_active_loans.groupby('SK_ID_CURR').agg(agg)
+        agg.columns = features_common.make_agg_names('pos_active_', agg)
+        agg.reset_index(inplace=True)
+
+        agg.rename(columns={'pos_active_sum(AMT_CREDIT_SUM_DEBT_POS)' : 'SUM(AMT_DEBT_ACTIVE_LOAN_POS)'}, inplace=True)
+
+        df_base = pd.merge(df_base, agg, on='SK_ID_CURR', how='left')
+
+        # 一番annuityが大きいものを代表として、直接dfの特徴に加える
+        df_active_last = df_active_loans.sort_values(by=['AMT_ANNUITY'], ascending=False)\
+                                        .drop_duplicates(subset=['SK_ID_CURR'], keep='first')
+
+        df_active_last['CREDIT_TO_ANNUITY_RATIO'] = df_active_last['AMT_CREDIT'] / df_active_last['AMT_ANNUITY']
+        df_active_last['CREDIT_TO_GOODS_RATIO'] = df_active_last['AMT_GOODS_PRICE'] / df_active_last['AMT_CREDIT']
+
+        columns = ['CNT_PAYMENT', 'CREDIT_TO_GOODS_RATIO', 'DAYS_DECISION', 'AMT_ANNUITY', 'NAME_TYPE_SUITE',
+                   'PRODUCT_COMBINATION', 'NAME_YIELD_GROUP']
+        df_active_last = df_active_last[['SK_ID_CURR'] + columns]
+
+        columns_new = ['p' + c for c in columns]
+        df_active_last.columns = ['SK_ID_CURR'] + columns_new
+        df_base = pd.merge(df_base, df_active_last, on='SK_ID_CURR', how='left')
+
+        return df_base
 
 
     def aggregate(self, df_base):
