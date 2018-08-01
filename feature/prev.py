@@ -15,6 +15,7 @@ class Prev(object):
     def fill(self):
         if self.transformed:
             return
+        self.df = self.df[self.df.FLAG_LAST_APPL_PER_CONTRACT == 'Y'].reset_index(drop=True)
         self.df['DAYS_FIRST_DRAWING'].replace(365243, np.nan, inplace=True)
         self.df['DAYS_FIRST_DUE'].replace(365243, np.nan, inplace=True)
         self.df['DAYS_LAST_DUE_1ST_VERSION'].replace(365243, np.nan, inplace=True)
