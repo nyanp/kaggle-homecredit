@@ -68,7 +68,7 @@ def lgbm_cv(param, X, y, X_test, nfolds=5, submission='../output/sub.csv'):
     return roc
 
 
-def feature_selection_eval(param, X:pd.DataFrame, y, X_test, nfolds, set=3, file='log.txt'):
+def feature_selection_eval(param, X:pd.DataFrame, y, X_test, nfolds, set=3, file='log.txt', nskip=0):
     n_columns = X.shape[1]
 
     n_loop = n_columns // set
@@ -79,6 +79,9 @@ def feature_selection_eval(param, X:pd.DataFrame, y, X_test, nfolds, set=3, file
         f.write('{},{},{},{},{},{}'.format(auc[0], auc[1], auc[2], auc[3], auc[4], auc[5]))
 
         for i in range(n_loop):
+            if i < nskip:
+                continue
+
             drop_columns = X.columns.tolist()[i*set:(i+1)*set]
             print('drop:{}'.format(drop_columns))
             auc = lgbm_cv(param, X.drop(drop_columns, axis=1), y, None, 5, None)
@@ -87,10 +90,19 @@ def feature_selection_eval(param, X:pd.DataFrame, y, X_test, nfolds, set=3, file
 
 #X = pd.read_feather('x.f')
 #y = pd.read_feather('y.f')
-df = pd.read_feather('x_model12.f')
+df = pd.read_feather('../feature/features_all.f')
 df = df[~df.TARGET.isnull()]
+
+for c in df:
+    if df[c].dtype.name == 'object':
+        df[c] = df[c].astype('category')
+
+if 'SK_ID_CURR' in df.columns:
+    df.drop('SK_ID_CURR', axis=1, inplace=True)
+
 X = df.drop('TARGET',axis=1)
 y = df[['TARGET']]
+
 del df
 
 print(X.shape)
@@ -116,4 +128,4 @@ lgb_param = {
     'verbose': -1
 }
 
-feature_selection_eval(lgb_param, X, y['TARGET'], None, 5, 1, file='log_fs180727.txt')
+feature_selection_eval(lgb_param, X, y['TARGET'], None, 5, 1, file='log_fs180831.txt', nskip=150)

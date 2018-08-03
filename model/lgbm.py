@@ -47,9 +47,9 @@ class LGBM(object):
                 'max_depth': 8,
                 'reg_alpha': 0.04,
                 'reg_lambda': 0.073,
-                'min_split_gain': 0.0222415,
-                'min_child_weight': 110,
-                'top_rate': 0.3,
+                'min_split_gain': 0.1,
+                'min_child_weight': 120,
+                'top_rate': 0.35,
                 'other_rate': 0.1,
                 'metric': 'auc',
                 'n_estimators': 10000,
@@ -69,7 +69,6 @@ class LGBM(object):
 
         if remove_columns is not None:
             self.x.drop(remove_columns, axis=1, inplace=True)
-
 
         for c in ['SK_ID_CURR', 'SK_ID_BUREAU', 'SK_ID_PREV', 'index']:
             if c in self.x:
@@ -171,18 +170,5 @@ class LGBM(object):
 
 
 if __name__ == "__main__":
-
-
-
-    #for seed in range(30, 50):
-    m = LGBM(name='lgbm_m30', comment='aggregate from active credit')
+    m = LGBM(name='lgbm_m38', comment='hyperparameter optimization')
     df, feather = m.cv()
-    df.reset_index(drop=True).to_feather('{}_importance.f'.format(m.name))
-
-    low_importance = df[df.importance == 0].groupby('feature')\
-        .count()\
-        .reset_index()\
-        .sort_values(by='importance', ascending=False)\
-        .query('importance >= 4')
-
-    print(low_importance)
