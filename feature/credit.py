@@ -77,10 +77,8 @@ class Credit(object):
         df_active_loans['NAME_YIELD_GROUP_low_normal'] = (df_active_loans.NAME_YIELD_GROUP == 'low_normal').astype(np.int32)
         df_active_loans['NAME_YIELD_GROUP_low_action'] = (df_active_loans.NAME_YIELD_GROUP == 'low_action').astype(np.int32)
         df_active_loans['DAYS_FIRST_DUE'].replace(365243, np.nan, inplace=True)
-        df_active_loans['DAYS_LAST_DUE_1ST_VERSION'].replace(365243, np.nan, inplace=True)
 
         agg = {
-            'DAYS_LAST_DUE_1ST_VERSION': ['mean'],
             'DAYS_FIRST_DUE': ['mean'],
             'CNT_PAYMENT': ['mean'],
             'AMT_ANNUITY': ['sum'],
