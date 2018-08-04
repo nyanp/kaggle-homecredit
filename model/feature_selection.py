@@ -113,19 +113,30 @@ print(y.head())
 # lr=0.02 : 0.7888116, round1000, 976s
 # lr=0.04 : 0.7888695+ 0.0022, round621, 621s
 lgb_param = {
-    'objective' : 'binary',
-    'num_leaves' : 32,
-    'learning_rate' : 0.04,
-    'colsample_bytree' : 0.2,
-    'subsample' : 0.872,
-    'max_depth' : 8,
-    'reg_alpha' : 0.04,
-    'reg_lambda' : 0.073,
-    'min_split_gain' : 0.0222415,
-    'min_child_weight' : 80,
-    'metric' : 'auc',
-    'n_estimators' : 10000,
+    'objective': 'binary',
+    'num_leaves': 32,
+    'learning_rate': 0.04,
+    'colsample_bytree': 0.1,
+    'max_depth': 8,
+    'reg_alpha': 0.04,
+    'reg_lambda': 0.073,
+    'min_split_gain': 0.1,
+    'min_child_weight': 120,
+    'top_rate': 0.35,
+    'other_rate': 0.1,
+    'metric': 'auc',
+    'n_estimators': 10000,
+    'boosting_type': 'goss',
     'verbose': -1
 }
 
-feature_selection_eval(lgb_param, X, y['TARGET'], None, 5, 1, file='log_fs180831.txt', nskip=150)
+import sys
+argc = len(sys.argv)
+
+filename = 'log.txt' if argc == 1 else sys.argv[1]
+nset = 5 if argc < 3 else int(sys.argv[2])
+nskip = 0 if argc < 4 else int(sys.argv[3])
+
+print('file:{}, n-set:{}, n-skip:{}'.format(filename, nset, nskip))
+
+feature_selection_eval(lgb_param, X, y['TARGET'], None, 5, nset, file=filename, nskip=nskip)

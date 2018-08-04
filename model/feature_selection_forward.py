@@ -93,36 +93,22 @@ def feature_selection_eval(param, X: pd.DataFrame, X_add, y, X_test, nfolds, set
                 '{},{},{},{},{},{},{}\n'.format(auc[0], auc[1], auc[2], auc[3], auc[4], auc[5], add_columns[0]))
             f.flush()
 
+def categorize(df):
+    for c in df:
+        if df[c].dtype.name == 'object':
+            df[c] = df[c].astype('category')
+    return df
 
 df = pd.read_feather('../feature/features_all.f')
 df = df[~df.TARGET.isnull()].reset_index(drop=True)
-
-for c in df:
-    if df[c].dtype.name == 'object':
-        df[c] = df[c].astype('category')
+df = categorize(df)
 
 X = df.drop('TARGET', axis=1)
 y = pd.DataFrame()
 y['y'] = df[['TARGET']].astype(np.int32)
-print(df.shape)
-print(y.shape)
-y['y'] = y['y'].astype(np.int32)
 
-print(y['y'].value_counts())
-print(y['y'].dtype)
-
-#X = pd.read_feather('x_base6.f')
 X_add = pd.read_feather('x_add0803.f')
-#y = pd.read_feather('y_base5.f')
-
-
-for c in X_add:
-    if X_add[c].dtype.name == 'object':
-        X_add[c] = X_add[c].astype('category')
-
-#tgt = ~X.TARGET.isnull()
-#X = X[tgt].reset_index(drop=True)
-#X_add = X_add[tgt].reset_index(drop=True)
+X_add = categorize(X_add)
 
 print(X.shape)
 print(X_add.shape)
