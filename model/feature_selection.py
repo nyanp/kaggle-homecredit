@@ -116,7 +116,7 @@ lgb_param = {
     'objective': 'binary',
     'num_leaves': 32,
     'learning_rate': 0.04,
-    'colsample_bytree': 0.1,
+    'colsample_bytree': 0.2,
     'max_depth': 8,
     'reg_alpha': 0.04,
     'reg_lambda': 0.073,
