@@ -59,10 +59,24 @@ class Feature(object):
         self.df = pd.merge(self.df, d[['SK_ID_CURR', 'PREDICTED_X14Y-1', 'POS_PREDICTED']], on='SK_ID_CURR', how='left')
 
 
+import sys
 
 if __name__ == "__main__":
+
+    argc = len(sys.argv)
+
+    if argc == 2:
+        if sys.argv[1] == 'nocache':
+            update = 'all'
+        elif sys.argv[1] == 'cache':
+            update = []
+        else:
+            update = sys.argv[1]
+    else:
+        update = []
+
     start = time.time()
-    f = Feature(update=[])
+    f = Feature(update=update)
 
     print(f.df.shape)
 
