@@ -55,11 +55,9 @@ class Feature(object):
         self.df.drop(drops, axis=1, inplace=True)
 
     def _load_exotic(self):
-        d = pd.read_feather('../model/predicted_dpd.f')
-        self.df = pd.merge(self.df, d[['SK_ID_CURR', 'PREDICTED_X14Y-1']], on='SK_ID_CURR', how='left')
+        d = pd.read_feather('exotic.ftr')
+        self.df = pd.merge(self.df, d[['SK_ID_CURR', 'PREDICTED_X14Y-1', 'POS_PREDICTED']], on='SK_ID_CURR', how='left')
 
-        d = pd.read_feather('../model/x_add2.f')
-        self.df = pd.merge(self.df, d[['SK_ID_CURR', 'POS_PREDICTED']], on='SK_ID_CURR', how='left')
 
 
 if __name__ == "__main__":
@@ -68,7 +66,10 @@ if __name__ == "__main__":
 
     print(f.df.shape)
 
-    f.df.to_feather('features_all.f')
-    f.df.head(100).to_csv('all_sample.csv', index=False)
+    # 実装に依存して順番が変わるとCVが変わってしまうので、最後にソートしておく。
+    x = f.df[sorted(f.df.columns)]
+
+    x.to_feather('features_all.f')
+    x.head(100).to_csv('all_sample.csv', index=False)
 
     print('finished generating features. ({} sec)'.format(time.time() - start))
