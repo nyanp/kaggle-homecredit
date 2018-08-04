@@ -13,6 +13,7 @@ class Credit(object):
             self.transformed = True
 
         self.df.sort_values(by=['SK_ID_CURR', 'SK_ID_PREV', 'MONTHS_BALANCE'], ascending=False, inplace=True)
+        self.df.reset_index(drop=True, inplace=True)
 
     @classmethod
     def from_cache(cls):
