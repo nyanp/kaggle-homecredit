@@ -10,7 +10,7 @@ from sklearn.model_selection import KFold, StratifiedKFold
 from contextlib import contextmanager
 from lightgbm import LGBMClassifier
 
-DELAY_THRESHOLD = 7
+DELAY_THRESHOLD = 3
 
 np.random.seed(42)
 
@@ -64,6 +64,64 @@ def lgbm_cv(param, X, y, X_test, nfolds=5, submission='../output/sub.csv'):
         fold_importance_df["fold"] = n_fold + 1
         feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
         print('Fold {} AUC : {:.6f}'.format(n_fold + 1, roc_auc_score(valid_y, oof_preds[valid_idx])))
+        del clf, train_x, train_y, valid_x, valid_y
+        gc.collect()
+
+    auc = roc_auc_score(y, oof_preds)
+    print('Full AUC score %.6f' % auc)
+    display_importances(feature_importance_df)
+
+    if submission is not None:
+        preds = preds_test.mean(axis=0)
+        df = pd.DataFrame()
+        df['f'] = preds
+        df.to_feather(submission)
+
+    return feature_importance_df, auc
+
+
+def lgbm_cv_idfold(param, X, y, X_test, nfolds=5, submission='../output/sub.csv'):
+    train_ids = X.index.unique()
+    len(train_ids)
+
+    folds = KFold(n_splits=nfolds, shuffle=True, random_state=47)
+    feature_importance_df = pd.DataFrame()
+    feats = [f for f in X.columns if f not in ['TARGET', 'SK_ID_CURR', 'SK_ID_BUREAU', 'SK_ID_PREV', 'index']]
+    oof_preds = np.zeros(X.shape[0])
+
+    if X_test is not None:
+        preds_test = np.empty((nfolds, X_test.shape[0]))
+
+    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_ids)):
+        train_x, train_y = X[feats].iloc[train_idx], y.iloc[train_idx]
+        valid_x, valid_y = X[feats].iloc[valid_idx], y.iloc[valid_idx]
+
+        train_x = X[X.index.isin(train_ids[train_idx])]
+        train_y = y[X.index.isin(train_ids[train_idx])]
+
+        valid_x = X[X.index.isin(train_ids[valid_idx])]
+        valid_y = y[X.index.isin(train_ids[valid_idx])]
+
+        print('train: {}, valid: {}'.format(train_x.shape, valid_x.shape))
+
+        # LightGBM parameters found by Bayesian optimization
+        clf = LGBMClassifier(**param)
+        clf.fit(train_x, train_y, eval_set=[(valid_x, valid_y)],
+                eval_metric='auc', verbose=1000, early_stopping_rounds=200)
+
+        oof_idx = np.where(X.index.isin(train_ids[valid_idx]))
+
+        oof_preds[oof_idx] = clf.predict_proba(valid_x, num_iteration=clf.best_iteration_)[:, 1]
+
+        if X_test is not None:
+            preds_test[n_fold, :] = clf.predict_proba(X_test, num_iteration=clf.best_iteration_)[:, 1]
+
+        fold_importance_df = pd.DataFrame()
+        fold_importance_df["feature"] = feats
+        fold_importance_df["importance"] = clf.feature_importances_
+        fold_importance_df["fold"] = n_fold + 1
+        feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
+        print('Fold {} AUC : {:.6f}'.format(n_fold + 1, roc_auc_score(valid_y, oof_preds[oof_idx])))
         del clf, train_x, train_y, valid_x, valid_y
         gc.collect()
 
@@ -156,7 +214,8 @@ lgb_param = {
     'min_split_gain' : 0.0222415,
     'min_child_weight' : 40,
     'metric' : 'auc',
-    'n_estimators' : 10000
+    'n_estimators' : 10000,
+    'verbose':-1
 }
 
 
@@ -173,6 +232,18 @@ df = basic_app_features(df)
 X_test = df[X.columns.tolist()]
 X_test = categorize(X_test)
 
-
-with timer("lgbm with bureau"):
-    feature_importance_df = lgbm_cv(lgb_param, X, y, X_test, nfolds=5, submission='test_pos2.f')
+with open('log_prevmodel.txt', 'a') as f:
+    for lr in [0.04, 0.1]:
+        for mc in [20, 40, 80]:
+            for nl in [8, 16, 32]:
+                for md in [-1, 8]:
+                    for cs in [0.2, 0.5, 0.95]:
+                        name = '{}_{}_{}_{}_{}'.format(lr,mc,nl,md,cs)
+                        lgb_param['learning_rate'] = lr
+                        lgb_param['min_child_weight'] = mc
+                        lgb_param['num_leaves'] = nl
+                        lgb_param['max_depth'] = md
+                        lgb_param['colsample_bytree'] = cs
+                        feature_importance_df, auc = lgbm_cv(lgb_param, X, y, X_test, nfolds=5, submission='test_pos4.f')
+                        f.write('{},{}\n'.format(name, auc))
+                        f.flush()
