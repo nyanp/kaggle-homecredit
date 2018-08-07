@@ -67,7 +67,7 @@ def lgbm_cv(param, X, y, X_test, nfolds=5, submission='../output/sub.csv'):
 
     auc = roc_auc_score(y, oof_preds)
     print('Full AUC score %.6f' % auc)
-    display_importances(feature_importance_df)
+    #display_importances(feature_importance_df)
 
     if submission is not None:
         preds = preds_test.mean(axis=0)
