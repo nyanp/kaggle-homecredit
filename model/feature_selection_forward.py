@@ -127,7 +127,7 @@ df = categorize(df)
 
 X = df.drop('TARGET', axis=1)
 y = pd.DataFrame()
-y['y'] = df[['TARGET']].astype(np.int32)
+y['y'] = df['TARGET'].astype(np.int32)
 
 X_add = pd.read_feather('x_add0807.f')
 X_add = categorize(X_add)
