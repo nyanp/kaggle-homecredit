@@ -20,7 +20,7 @@ def timer(title):
     print("{} - done in {:.0f}s".format(title, time.time() - t0))
 
 
-def lgbm_cv(param, X, y, X_test, nfolds=5, submission='../output/sub.csv'):
+def lgbm_cv(param, X, y, X_test, nfolds=5, submission='../output/sub.csv', baseline=None):
     folds = KFold(n_splits=nfolds, shuffle=True, random_state=47)
     feature_importance_df = pd.DataFrame()
     feats = [f for f in X.columns if f not in ['TARGET', 'SK_ID_CURR', 'SK_ID_BUREAU', 'SK_ID_PREV', 'index']]
@@ -30,6 +30,9 @@ def lgbm_cv(param, X, y, X_test, nfolds=5, submission='../output/sub.csv'):
         preds_test = np.empty((nfolds, X_test.shape[0]))
 
     roc = []
+
+    n_lose = 0
+    balance = 0
 
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(X[feats], y)):
         train_x, train_y = X[feats].iloc[train_idx], y.iloc[train_idx]
@@ -51,7 +54,17 @@ def lgbm_cv(param, X, y, X_test, nfolds=5, submission='../output/sub.csv'):
         fold_importance_df["fold"] = n_fold + 1
         feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
         # print('Fold {} AUC : {:.6f}'.format(n_fold + 1, roc_auc_score(valid_y, oof_preds[valid_idx])))
-        roc.append(roc_auc_score(valid_y, oof_preds[valid_idx]))
+        fold_auc = roc_auc_score(valid_y, oof_preds[valid_idx])
+
+        if baseline is not None:
+            balance = balance + fold_auc - baseline[n_fold]
+            if fold_auc < baseline[n_fold]:
+                n_lose = n_lose + 1
+
+        roc.append(fold_auc)
+
+        if baseline is not None and n_lose > nfolds/2 and balance < 0:
+            return roc
 
         del clf, train_x, train_y, valid_x, valid_y
         gc.collect()
@@ -69,7 +82,7 @@ def lgbm_cv(param, X, y, X_test, nfolds=5, submission='../output/sub.csv'):
     return roc
 
 
-def feature_selection_eval(param, X: pd.DataFrame, X_add, y, X_test, nfolds, set=2, file='log_fw.txt'):
+def feature_selection_eval(param, X: pd.DataFrame, X_add, y, X_test, nfolds, set=2, file='log_fw.txt', earlystop=True):
     n_columns = X_add.shape[1]
 
     n_loop = n_columns // set
@@ -78,6 +91,11 @@ def feature_selection_eval(param, X: pd.DataFrame, X_add, y, X_test, nfolds, set
         # baseline
         auc = lgbm_cv(param, X, y, None, 5, None)
         f.write('{},{},{},{},{},{},baseline,baseline\n'.format(auc[0], auc[1], auc[2], auc[3], auc[4], auc[5]))
+
+        if earlystop:
+            baseline = auc
+        else:
+            baseline = None
 
         for i in range(n_loop):
             X_c = X.copy()
@@ -88,9 +106,13 @@ def feature_selection_eval(param, X: pd.DataFrame, X_add, y, X_test, nfolds, set
 
             add_columns = X_add.columns.tolist()[i * set:(i + 1) * set]
             print('add:{}'.format(add_columns))
-            auc = lgbm_cv(param, X_c, y, None, 5, None)
-            f.write(
-                '{},{},{},{},{},{},{}\n'.format(auc[0], auc[1], auc[2], auc[3], auc[4], auc[5], add_columns[0]))
+            auc = lgbm_cv(param, X_c, y, None, 5, None, baseline)
+
+            for a in auc:
+                f.write('{},'.format(a))
+            for a in add_columns:
+                f.write('{},'.format(a))
+            f.write('\n')
             f.flush()
 
 def categorize(df):
@@ -107,7 +129,7 @@ X = df.drop('TARGET', axis=1)
 y = pd.DataFrame()
 y['y'] = df[['TARGET']].astype(np.int32)
 
-X_add = pd.read_feather('x_add0803.f')
+X_add = pd.read_feather('x_add0807.f')
 X_add = categorize(X_add)
 
 print(X.shape)
@@ -145,4 +167,4 @@ lgb_param = {
     'verbose': -1
 }
 
-feature_selection_eval(lgb_param, X, X_add.drop('SK_ID_CURR', axis=1), y['y'], None, 5, set=1, file='log_fw8.txt')
+feature_selection_eval(lgb_param, X, X_add.drop('SK_ID_CURR', axis=1), y['y'], None, 5, set=1, file='log_fw12.txt', earlystop=False)
