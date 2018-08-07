@@ -3,8 +3,6 @@ import numpy as np
 import lightgbm as lgb
 import time
 import gc
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.metrics import roc_auc_score, roc_curve
 from sklearn.model_selection import KFold, StratifiedKFold
 from contextlib import contextmanager
