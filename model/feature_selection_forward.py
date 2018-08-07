@@ -41,7 +41,7 @@ def lgbm_cv(param, X, y, X_test, nfolds=5, submission='../output/sub.csv', basel
         # LightGBM parameters found by Bayesian optimization
         clf = LGBMClassifier(**param)
         clf.fit(train_x, train_y, eval_set=[(valid_x, valid_y)],
-                eval_metric='auc', verbose=-1, early_stopping_rounds=200)
+                eval_metric='auc', verbose=-1, early_stopping_rounds=-1)
 
         oof_preds[valid_idx] = clf.predict_proba(valid_x, num_iteration=clf.best_iteration_)[:, 1]
 
@@ -162,7 +162,7 @@ lgb_param = {
     'top_rate': 0.35,
     'other_rate': 0.1,
     'metric': 'auc',
-    'n_estimators': 10000,
+    'n_estimators': 1000,
     'boosting_type': 'goss',
     'verbose': -1
 }
