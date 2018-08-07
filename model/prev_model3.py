@@ -230,18 +230,19 @@ df = basic_app_features(df)
 X_test = df[X.columns.tolist()]
 X_test = categorize(X_test)
 
-with open('log_prevmodel.txt', 'a') as f:
-    for lr in [0.04, 0.1]:
-        for mc in [20, 40, 80]:
-            for nl in [8, 16, 32]:
-                for md in [-1, 8]:
-                    for cs in [0.2, 0.5, 0.95]:
-                        name = '{}_{}_{}_{}_{}'.format(lr,mc,nl,md,cs)
-                        lgb_param['learning_rate'] = lr
-                        lgb_param['min_child_weight'] = mc
-                        lgb_param['num_leaves'] = nl
-                        lgb_param['max_depth'] = md
-                        lgb_param['colsample_bytree'] = cs
-                        feature_importance_df, auc = lgbm_cv(lgb_param, X, y, X_test, nfolds=5, submission='test_pos4.f')
-                        f.write('{},{}\n'.format(name, auc))
-                        f.flush()
+with open('log_prevmodel2.txt', 'a') as f:
+    md = -1
+    lr = 0.04
+    cs = 0.2
+
+    for mc in [20, 40, 80]:
+        for nl in [32, 48, 64]:
+            name = '{}_{}_{}_{}_{}'.format(lr,mc,nl,md,cs)
+            lgb_param['learning_rate'] = lr
+            lgb_param['min_child_weight'] = mc
+            lgb_param['num_leaves'] = nl
+            lgb_param['max_depth'] = md
+            lgb_param['colsample_bytree'] = cs
+            feature_importance_df, auc = lgbm_cv(lgb_param, X, y, X_test, nfolds=5, submission='test_pos4.f')
+            f.write('{},{}\n'.format(name, auc))
+            f.flush()
