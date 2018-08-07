@@ -43,10 +43,10 @@ def lgbm_cv(param, X, y, X_test, nfolds=5, submission='../output/sub.csv', basel
         clf.fit(train_x, train_y, eval_set=[(valid_x, valid_y)],
                 eval_metric='auc', verbose=-1, early_stopping_rounds=None)
 
-        oof_preds[valid_idx] = clf.predict_proba(valid_x, num_iteration=clf.best_iteration_)[:, 1]
+        oof_preds[valid_idx] = clf.predict_proba(valid_x)[:, 1]
 
         if submission is not None:
-            preds_test[n_fold, :] = clf.predict_proba(X_test, num_iteration=clf.best_iteration_)[:, 1]
+            preds_test[n_fold, :] = clf.predict_proba(X_test)[:, 1]
 
         fold_importance_df = pd.DataFrame()
         fold_importance_df["feature"] = feats
@@ -167,4 +167,4 @@ lgb_param = {
     'verbose': -1
 }
 
-feature_selection_eval(lgb_param, X, X_add.drop('SK_ID_CURR', axis=1), y['y'], None, 5, set=1, file='log_fw12.txt', earlystop=False)
+feature_selection_eval(lgb_param, X, X_add.drop('SK_ID_CURR', axis=1), y['y'], None, 5, set=1, file='log_fw13.txt', earlystop=False)
