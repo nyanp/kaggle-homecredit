@@ -41,19 +41,22 @@ class LGBM(object):
         if param is None:
             self.param = {
                 'objective': 'binary',
-                'num_leaves': 32,
-                'learning_rate': 0.04,
-                'colsample_bytree': 0.2,
-                'max_depth': 8,
-                'reg_alpha': 0.04,
-                'reg_lambda': 0.073,
-                'min_split_gain': 0.0222415,
-                'min_child_weight': 110,
-                'top_rate': 0.3,
-                'other_rate': 0.1,
+                'learning_rate': 0.02,
+                'max_bin':300,
+                'max_depth': -1,
+                'num_leaves': 30,
+                'min_child_samples': 70,
+                'subsample': 1.0,
+                'subsample_freq': 1,
+                'colsample_bytree': 0.05,
+                'min_split_gain': 0.5,
+                'reg_alpha': 0.0,
+                'reg_lambda': 100,
+                'scale_pos_weight': 1,
+                'is_unbalance': False,
                 'metric': 'auc',
                 'n_estimators': 10000,
-                'boosting_type': 'goss'
+                'boosting_type': 'gbdt'
             }
         else:
             self.param = param
