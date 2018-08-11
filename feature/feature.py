@@ -7,6 +7,7 @@ import install
 import prev
 import time
 import os
+import sys
 import zero_importance
 
 class Feature(object):
@@ -56,10 +57,10 @@ class Feature(object):
         self.df.drop(drops, axis=1, inplace=True)
 
     def _load_exotic(self):
-        d = pd.read_feather('../model/predicted_dpd.f')
+        d = pd.read_feather('../model/predicted_dpd.ftr')
         self.df = pd.merge(self.df, d[['SK_ID_CURR', 'PREDICTED_X14Y-1']], on='SK_ID_CURR', how='left')
 
-        d = pd.read_feather('../model/x_add2.f')
+        d = pd.read_feather('../model/x_add2.ftr')
         self.df = pd.merge(self.df, d[['SK_ID_CURR', 'POS_PREDICTED']], on='SK_ID_CURR', how='left')
 
 

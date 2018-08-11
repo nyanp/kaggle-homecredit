@@ -6,7 +6,8 @@ from datetime import datetime
 from sklearn.metrics import roc_auc_score, roc_curve
 from sklearn.model_selection import KFold, StratifiedKFold
 from lightgbm import LGBMClassifier
-
+import os
+import sys
 
 BASE_X_PATH = '../feature/features_all.f'
 
@@ -174,11 +175,16 @@ class LGBM(object):
 
 
 if __name__ == "__main__":
+    if not os.path.exists('../output'):
+        os.makedirs('../output')
 
+    argc = len(sys.argv)
 
+    name = 'lgbm_m30' if argc == 1 else sys.argv[1]
+    comment = '' if argc < 3 else sys.argv[2]
 
     #for seed in range(30, 50):
-    m = LGBM(name='lgbm_m30', comment='aggregate from active credit')
+    m = LGBM(name=name, comment=comment)
     df, feather = m.cv()
     df.reset_index(drop=True).to_feather('{}_importance.f'.format(m.name))
 
