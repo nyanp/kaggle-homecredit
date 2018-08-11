@@ -1,5 +1,6 @@
 import pandas as pd
-
+import os
+import sys
 
 def make_agg_names(prefix, columns):
     return pd.Index([prefix + e[1] + "(" + e[0] + ")" for e in columns])
@@ -43,3 +44,24 @@ def extract_active_balance(df, threshold=-12):
     prev_id_recent = df_last[df_last['MONTHS_BALANCE'] >= threshold].SK_ID_PREV
 
     return df[~df.SK_ID_PREV.isin(prev_id_closed) & df.SK_ID_PREV.isin(prev_id_recent)].reset_index(drop=True)
+
+
+def read_csv(file):
+    if os.path.exists(file + '.f'):
+        return pd.read_feather(file + '.f')
+    else:
+        df = pd.read_csv(file)
+        df.to_feather(file + '.f')
+        return df
+
+def read_application():
+    if os.path.exists('../input/application_all.f'):
+        return pd.read_feather('../input/application_all.f')
+    else:
+        df_train = read_csv('../input/application_train.csv')
+        df_test = read_csv('../input/application_test.csv')
+
+        df_all = pd.concat([df_train,df_test]).reset_index(drop=True)
+        df_all.to_feather('../input/application_all.f')
+
+        return df_all

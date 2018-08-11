@@ -6,7 +6,7 @@ import features_common
 class Prev(object):
     def __init__(self, file=None):
         if file is None:
-            self.df = pd.read_feather('../input/previous_application.f')
+            self.df = features_common.read_csv('../input/previous_application.csv')
             self.transformed = False
         else:
             self.df = pd.read_feather(file)

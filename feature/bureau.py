@@ -7,8 +7,8 @@ class Bureau(object):
     def __init__(self, bureau=None, bb=None):
         if bureau is None:
             assert bb is None
-            self.df = pd.read_feather('../input/bureau.f')
-            self.balance = pd.read_feather('../input/bureau_balance.f')
+            self.df = features_common.read_csv('../input/bureau.csv')
+            self.balance = features_common.read_csv('../input/bureau_balance.csv')
             self.transformed = False
         else:
             self.df = pd.read_feather(bureau)

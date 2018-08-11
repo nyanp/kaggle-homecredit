@@ -6,7 +6,7 @@ import numpy as np
 class Credit(object):
     def __init__(self, file=None):
         if file is None:
-            self.df = pd.read_feather('../input/credit_card_balance.f')
+            self.df = features_common.read_csv('../input/credit_card_balance.csv')
             self.transformed = False
         else:
             self.df = pd.read_feather(file)

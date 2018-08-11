@@ -5,7 +5,7 @@ import numpy as np
 class Application(object):
     def __init__(self, file=None):
         if file is None:
-            self.df = pd.read_feather('../input/application_all.f')
+            self.df = features_common.read_application()
             self.transformed = False
         else:
             self.df = pd.read_feather(file)

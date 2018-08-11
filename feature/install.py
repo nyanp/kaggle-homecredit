@@ -6,7 +6,7 @@ import numpy as np
 class Install(object):
     def __init__(self, file=None):
         if file is None:
-            self.df = pd.read_feather('../input/installments_payments.f')
+            self.df = features_common.read_csv('../input/installments_payments.csv')
 
             # 最近の支払ほど上に。
             self.df.sort_values(['SK_ID_CURR', 'SK_ID_PREV', 'DAYS_ENTRY_PAYMENT'], ascending=False, inplace=True)
@@ -17,12 +17,12 @@ class Install(object):
             self.df = pd.read_feather(file)
             self.transformed = True
 
-        prev = pd.read_feather('../input/previous_application.f')
+        prev = features_common.read_csv('../input/previous_application.csv')
         prev = prev[['SK_ID_PREV','NAME_CONTRACT_TYPE']]
         self.df = pd.merge(self.df, prev, on='SK_ID_PREV', how='left')
         del prev
 
-        credit = pd.read_feather('../input/credit_card_balance.f')
+        credit = features_common.read_csv('../input/credit_card_balance.csv')
         credit_ids = credit.SK_ID_PREV.unique()
         self.df['is_credit'] = self.df.SK_ID_PREV.isin(credit_ids).astype(np.int32)
         del credit

@@ -6,7 +6,7 @@ import features_common
 class PosCash(object):
     def __init__(self, file=None):
         if file is None:
-            self.df = pd.read_feather('../input/POS_CASH_balance.f')
+            self.df = features_common.read_csv('../input/POS_CASH_balance.csv')
             self.df.reset_index(inplace=True, drop=True)
             self.transformed = False
         else:
@@ -62,7 +62,7 @@ class PosCash(object):
     def _aggregate_by_prev2(self, df_base):
         # アクティブなローンの返済残高
         # POS_CASHだけからは分からないので、1回あたりの返済額をprevから引っ張ってきて、残りの返済回数と掛けて算出
-        prev = pd.read_feather('../input/previous_application.f')
+        prev = features_common.read_csv('../input/previous_application.csv')
 
         df_active_balance = features_common.extract_active_balance(self.df)
         df_active_loans = df_active_balance.groupby('SK_ID_PREV')[['SK_ID_CURR', 'CNT_INSTALMENT_FUTURE']].min().reset_index()
