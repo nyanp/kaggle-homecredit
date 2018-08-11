@@ -6,6 +6,7 @@ import pos_cash
 import install
 import prev
 import time
+import os
 import zero_importance
 
 class Feature(object):
@@ -63,10 +64,28 @@ class Feature(object):
 
 
 if __name__ == "__main__":
+    if not os.path.exists('cache'):
+        os.makedirs('cache')
+
+    argc = len(sys.argv)
+
+    if argc == 2:
+        if sys.argv[1] == 'nocache':
+            update = 'all'
+        elif sys.argv[1] == 'cache':
+            update = []
+        else:
+            update = sys.argv[1]
+    else:
+        update = []
+
     start = time.time()
-    f = Feature(update=[])
+    f = Feature(update=update)
 
     print(f.df.shape)
+
+    # 実装に依存して順番が変わるとCVが変わってしまうので、最後にソートしておく。
+    x = f.df[sorted(f.df.columns)]
 
     f.df.to_feather('features_all.f')
     f.df.head(100).to_csv('all_sample.csv', index=False)
