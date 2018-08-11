@@ -65,7 +65,7 @@ class Credit(object):
         df_base = pd.merge(df_base, agg, on='SK_ID_CURR', how='left')
 
         # 現在Activeなクレジットの返済残高の合計
-        prev = pd.read_feather('../input/previous_application.f')
+        prev = features_common.read_csv('../input/previous_application.csv')
 
         df_active_balance = features_common.extract_active_balance(self.df)
         df_active_loans = df_active_balance.groupby('SK_ID_PREV')\
