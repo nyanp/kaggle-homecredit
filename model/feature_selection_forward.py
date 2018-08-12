@@ -19,7 +19,7 @@ def timer(title):
     print("{} - done in {:.0f}s".format(title, time.time() - t0))
 
 
-def lgbm_cv(param, X, y, X_test, nfolds=5, submission='../output/sub.csv', baseline=None, fixed_epoch=True, seed=47):
+def lgbm_cv(param, X, y, X_test, nfolds=5, submission='../output/sub.csv', baseline=None, fixed_epoch=1000, seed=47):
     folds = KFold(n_splits=nfolds, shuffle=True, random_state=seed)
     feature_importance_df = pd.DataFrame()
     feats = [f for f in X.columns if f not in ['TARGET', 'SK_ID_CURR', 'SK_ID_BUREAU', 'SK_ID_PREV', 'index']]
@@ -37,13 +37,14 @@ def lgbm_cv(param, X, y, X_test, nfolds=5, submission='../output/sub.csv', basel
         train_x, train_y = X[feats].iloc[train_idx], y.iloc[train_idx]
         valid_x, valid_y = X[feats].iloc[valid_idx], y.iloc[valid_idx]
 
-        # LightGBM parameters found by Bayesian optimization
-        clf = LGBMClassifier(**param)
-
-        if fixed_epoch:
+        if fixed_epoch > 0:
+            param['n_estimators'] = fixed_epoch
             er = None
         else:
             er = 200
+
+        # LightGBM parameters found by Bayesian optimization
+        clf = LGBMClassifier(**param)
 
         clf.fit(train_x, train_y, eval_set=[(valid_x, valid_y)],
                 eval_metric='auc', verbose=-1, early_stopping_rounds=er)
@@ -101,13 +102,14 @@ def feature_selection_eval(param,
                            set=2,
                            file='log_fw.txt',
                            earlystop=True,
-                           fixed_epoch=True,
+                           fixed_epoch=1000,
                            seed=47):
     n_columns = X_add.shape[1]
 
     n_loop = n_columns // set
 
     with open(file, 'a') as f:
+        f.write('param:{}, fixed_epoch:{}, seed:{}\n'.format(param, fixed_epoch, seed))
         # baseline
         auc = lgbm_cv(param, X, y, None, nfolds=nfolds, submission=None, fixed_epoch=fixed_epoch, seed=seed)
 
@@ -150,7 +152,7 @@ argc = len(sys.argv)
 add_file = 'x_add0807.f' if argc == 1 else sys.argv[1]
 filename = 'log.txt' if argc < 3 else sys.argv[2]
 nfolds = 5 if argc < 4 else int(sys.argv[3])
-fixed = True if argc < 5 else (int(sys.argv[4]) > 0)
+fixed = True if argc < 5 else int(sys.argv[4]) # 0: 固定しない(fixed epoch)
 seed = 47 if argc < 6 else int(sys.argv[5])
 
 print('input: {}, log: {}, folds: {}, fixed: {}, seed: {}'.format(add_file, filename, nfolds, fixed, seed))
