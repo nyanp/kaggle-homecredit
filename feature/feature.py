@@ -9,6 +9,8 @@ import time
 import os
 import sys
 import zero_importance
+import features_common
+import add0812
 
 class Feature(object):
     def __init__(self, update='all'):
@@ -40,6 +42,7 @@ class Feature(object):
         self.tables = tables
         self.df = df
         self._load_exotic()
+        self._load_add()
         self._delete_columns()
 
     def _delete_columns(self):
@@ -62,6 +65,25 @@ class Feature(object):
 
         d = pd.read_feather('../model/x_add2.ftr')
         self.df = pd.merge(self.df, d[['SK_ID_CURR', 'POS_PREDICTED']], on='SK_ID_CURR', how='left')
+
+
+    def _load_add(self):
+        df = features_common.read_application()
+        prev = features_common.read_csv('../input/previous_application.csv')
+        install = features_common.read_csv('../input/installments_payments.csv')
+        bureau = features_common.read_csv('../input/bureau.csv')
+        bb = features_common.read_csv('../input/bureau_balance.csv')
+        pos = features_common.read_csv('../input/POS_CASH_balance.csv')
+        credit = features_common.read_csv('../input/credit_card_balance.csv')
+
+        if os.path.exists('cache/0812.f'):
+            f1 = pd.read_feather('cache/0812.f')
+        else:
+            print('make additional features(0812)...')
+            f1 = add0812.make_features(df, prev, bureau, bb, pos, credit, install)
+            f1.to_feather('cache/0812.f')
+
+        self.df = pd.merge(self.df, f1, on='SK_ID_CURR', how='left')
 
 
 if __name__ == "__main__":

@@ -17,15 +17,17 @@ class Install(object):
             self.df = pd.read_feather(file)
             self.transformed = True
 
-        prev = features_common.read_csv('../input/previous_application.csv')
-        prev = prev[['SK_ID_PREV','NAME_CONTRACT_TYPE']]
-        self.df = pd.merge(self.df, prev, on='SK_ID_PREV', how='left')
-        del prev
+        if 'NAME_CONTRACT_TYPE' not in self.df:
+            prev = features_common.read_csv('../input/previous_application.csv')
+            prev = prev[['SK_ID_PREV','NAME_CONTRACT_TYPE']]
+            self.df = pd.merge(self.df, prev, on='SK_ID_PREV', how='left')
+            del prev
 
-        credit = features_common.read_csv('../input/credit_card_balance.csv')
-        credit_ids = credit.SK_ID_PREV.unique()
-        self.df['is_credit'] = self.df.SK_ID_PREV.isin(credit_ids).astype(np.int32)
-        del credit
+        if 'is_credit' not in self.df:
+            credit = features_common.read_csv('../input/credit_card_balance.csv')
+            credit_ids = credit.SK_ID_PREV.unique()
+            self.df['is_credit'] = self.df.SK_ID_PREV.isin(credit_ids).astype(np.int32)
+            del credit
 
     @classmethod
     def from_cache(cls):
