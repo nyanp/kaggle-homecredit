@@ -20,8 +20,8 @@ def timer(title):
     print("{} - done in {:.0f}s".format(title, time.time() - t0))
 
 
-def lgbm_cv(param, X, y, X_test, nfolds=5, submission='../output/sub.csv', baseline=None, fixed_epoch=True):
-    folds = KFold(n_splits=nfolds, shuffle=True, random_state=47)
+def lgbm_cv(param, X, y, X_test, nfolds=5, submission='../output/sub.csv', baseline=None, fixed_epoch=True, seed=47):
+    folds = KFold(n_splits=nfolds, shuffle=True, random_state=seed)
     feature_importance_df = pd.DataFrame()
     feats = [f for f in X.columns if f not in ['TARGET', 'SK_ID_CURR', 'SK_ID_BUREAU', 'SK_ID_PREV', 'index']]
     oof_preds = np.zeros(X.shape[0])
@@ -102,14 +102,15 @@ def feature_selection_eval(param,
                            set=2,
                            file='log_fw.txt',
                            earlystop=True,
-                           fixed_epoch=True):
+                           fixed_epoch=True,
+                           seed=47):
     n_columns = X_add.shape[1]
 
     n_loop = n_columns // set
 
     with open(file, 'a') as f:
         # baseline
-        auc = lgbm_cv(param, X, y, None, nfolds=nfolds, submission=None, fixed_epoch=fixed_epoch)
+        auc = lgbm_cv(param, X, y, None, nfolds=nfolds, submission=None, fixed_epoch=fixed_epoch, seed=seed)
 
         for a in auc:
             f.write('{},'.format(a))
@@ -129,7 +130,7 @@ def feature_selection_eval(param,
 
             add_columns = X_add.columns.tolist()[i * set:(i + 1) * set]
             print('add:{}'.format(add_columns))
-            auc = lgbm_cv(param, X_c, y, None, nfolds=nfolds, submission=None, baseline=baseline, fixed_epoch=fixed_epoch)
+            auc = lgbm_cv(param, X_c, y, None, nfolds=nfolds, submission=None, baseline=baseline, fixed_epoch=fixed_epoch, seed=seed)
 
             for a in auc:
                 f.write('{},'.format(a))
@@ -151,8 +152,9 @@ add_file = 'x_add0807.f' if argc == 1 else sys.argv[1]
 filename = 'log.txt' if argc < 3 else sys.argv[2]
 nfolds = 5 if argc < 4 else int(sys.argv[3])
 fixed = True if argc < 5 else (int(sys.argv[4]) > 0)
+seed = 47 if argc < 6 else int(sys.argv[5])
 
-print('input: {}, log: {}, folds: {}, fixed: {}'.format(add_file, filename, nfolds, fixed))
+print('input: {}, log: {}, folds: {}, fixed: {}, seed: {}'.format(add_file, filename, nfolds, fixed, seed))
 
 df = pd.read_feather('../feature/features_all.f')
 df = df[~df.TARGET.isnull()].reset_index(drop=True)
@@ -202,4 +204,5 @@ lgb_param = {
     'boosting_type': 'gbdt'
 }
 
-feature_selection_eval(lgb_param, X, X_add.drop('SK_ID_CURR', axis=1), y['y'], None, nfolds, set=1, file=filename, fixed_epoch=True)
+feature_selection_eval(lgb_param, X, X_add.drop('SK_ID_CURR', axis=1), y['y'], None, nfolds, set=1, file=filename,
+                       fixed_epoch=True, seed=seed)
