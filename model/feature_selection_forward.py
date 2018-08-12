@@ -204,4 +204,4 @@ lgb_param = {
 }
 
 feature_selection_eval(lgb_param, X, X_add.drop('SK_ID_CURR', axis=1), y['y'], None, nfolds, set=1, file=filename,
-                       fixed_epoch=True, seed=seed)
+                       fixed_epoch=fixed, seed=seed)
