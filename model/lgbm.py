@@ -169,7 +169,7 @@ class LGBM(object):
 
         self.logfile.flush()
 
-        self.display_importances(self.feature_importance_df, self.name)
+        #self.display_importances(self.feature_importance_df, self.name)
 
         return self.feature_importance_df, full_auc
 

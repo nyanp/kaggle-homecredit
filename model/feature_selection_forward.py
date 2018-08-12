@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import pandas as pd
 import numpy as np
-import lightgbm as lgb
 import time
 import gc
 from sklearn.metrics import roc_auc_score, roc_curve
