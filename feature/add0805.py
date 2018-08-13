@@ -33,6 +33,9 @@ with timer('load dataframes'):
     # 過去の分割払い(install)に関する支払情報
     install = pd.read_feather('../input/installments_payments.csv.f')
 
+def make_agg_names(prefix, columns):
+    return pd.Index([prefix + e[1] + "(" + e[0] + ")" for e in columns])
+
 aggregations = []
 
 # 信用情報が更新されていないものは、ENDDATEが負なのにActiveなものがある。情報が古いだけなので、そのような行はActive扱いとしない。
