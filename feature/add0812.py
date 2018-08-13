@@ -269,6 +269,17 @@ def make_features(df, prev, bureau, bb, pos, credit, install):
         iagg.columns = ['SK_ID_CURR', 'ins_{}y_sum(AMT_PAYMENT)'.format(i), 'ins_{}y_count(AMT_PAYMENT)'.format(i)]
         df_features = merge(df_features, iagg)
 
+    active_ids = active(pos, credit)
+
+    prev_active = prev[prev.SK_ID_PREV.isin(active_ids)]
+
+    agg = {
+        'CNT_PAYMENT': ['mean']
+    }
+
+    p1 = aggregate(prev_active, agg, 'p_active_')
+    df_features = merge(df_features, p1)
+
     selected_features = [
         "p_consumer720_mean(ENDDATE_DIFF)",
         "mean(EXT3)",
