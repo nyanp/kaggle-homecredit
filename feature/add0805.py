@@ -153,10 +153,9 @@ def iagg(df, prefix):
     agg.columns = ['SK_ID_CURR', prefix+'mean(PAYMENT_AT_TIME)']
     return agg
 
-
-df_features = merge(df_features, iagg(payment_at_time, 'ins_'))
-df_features = merge(df_features, iagg(payment_at_time.query('DAYS_ENTRY_PAYMENT >= -365'), 'ins365_'))
-df_features = merge(df_features, iagg(payment_at_time.query('DAYS_ENTRY_PAYMENT >= -720'), 'ins720_'))
+aggregations.append(iagg(payment_at_time, 'ins_'))
+aggregations.append(iagg(payment_at_time.query('DAYS_ENTRY_PAYMENT >= -365'), 'ins365_'))
+aggregations.append(iagg(payment_at_time.query('DAYS_ENTRY_PAYMENT >= -720'), 'ins720_'))
 
 install_last = install.drop_duplicates(subset=['SK_ID_PREV'], keep='first')
 install_last.sort_values(by=['SK_ID_CURR','DAYS_INSTALMENT'],ascending=False,inplace=True)
