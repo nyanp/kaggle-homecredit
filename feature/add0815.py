@@ -1,8 +1,5 @@
 import pandas as pd
 import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
-%matplotlib inline
 
 df = pd.read_feather('input/application_all.f')
 install = pd.read_feather('input/installments_payments.csv.f')
