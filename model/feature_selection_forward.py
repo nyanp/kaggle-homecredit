@@ -187,8 +187,8 @@ if 'SK_ID_CURR' in df.columns:
 # lr=0.04 : 0.7888695+ 0.0022, round621, 621s
 lgb_param = {
     'objective': 'binary',
-    'learning_rate': 0.03,
-    'max_bin':200,
+    'learning_rate': 0.02,
+    'max_bin':300,
     'max_depth': -1,
     'num_leaves': 30,
     'min_child_samples': 70,
