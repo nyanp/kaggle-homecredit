@@ -113,7 +113,7 @@ df_features = merge(df_features, pagg)
 agg = {
     'AMT_CREDIT': ['var','skew']
 }
-pagg = aggregate(pos, agg, 'pos_')
+pagg = aggregate(prev, agg, 'p_')
 df_features = merge(df_features, pagg)
 
 prev['DAYS_FIRST_DRAWING'].replace(365243, np.nan, inplace=True)
