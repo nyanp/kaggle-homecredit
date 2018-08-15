@@ -1,13 +1,14 @@
 import pandas as pd
 import numpy as np
 
-df = pd.read_feather('input/application_all.f')
-install = pd.read_feather('input/installments_payments.csv.f')
-bureau = pd.read_feather('input/bureau.csv.f')
-credit = pd.read_feather('input/credit_card_balance.csv.f')
-prev = pd.read_feather('input/previous_application.csv.f')
-pos = pd.read_feather('input/POS_CASH_balance.csv.f')
-bb = pd.read_feather('input/bureau_balance.csv.f')
+df = pd.read_feather('../input/application_all.f')
+install = pd.read_feather('../input/installments_payments.csv.f')
+bureau = pd.read_feather('../input/bureau.csv.f')
+credit = pd.read_feather('../input/credit_card_balance.csv.f')
+prev = pd.read_feather('../input/previous_application.csv.f')
+pos = pd.read_feather('../input/POS_CASH_balance.csv.f')
+bb = pd.read_feather('../input/bureau_balance.csv.f')
+
 
 install.sort_values(by=['SK_ID_CURR','SK_ID_PREV','DAYS_INSTALMENT'], ascending=False, inplace=True)
 prev.sort_values(by=['SK_ID_CURR','SK_ID_PREV','DAYS_DECISION'], ascending=False, inplace=True)
