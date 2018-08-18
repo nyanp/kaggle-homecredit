@@ -103,7 +103,8 @@ def feature_selection_eval(param,
                            file='log_fw.txt',
                            earlystop=True,
                            fixed_epoch=1000,
-                           seed=47):
+                           seed=47,
+                           nskip=0):
     n_columns = X_add.shape[1]
 
     n_loop = n_columns // set
@@ -123,6 +124,10 @@ def feature_selection_eval(param,
             baseline = None
 
         for i in range(n_loop):
+            if i < nskip:
+                print('iteration {} skipped.'.format(i))
+                continue
+
             X_c = X.copy()
             for n in range(set):
                 idx = i * set + n
@@ -154,6 +159,7 @@ filename = 'log.txt' if argc < 3 else sys.argv[2]
 nfolds = 5 if argc < 4 else int(sys.argv[3])
 fixed = True if argc < 5 else int(sys.argv[4]) # 0: 固定しない(fixed epoch)
 seed = 47 if argc < 6 else int(sys.argv[5])
+nskip = 0 if argc < 7 else int(sys.argv[6])
 
 print('input: {}, log: {}, folds: {}, fixed: {}, seed: {}'.format(add_file, filename, nfolds, fixed, seed))
 
@@ -206,4 +212,4 @@ lgb_param = {
 }
 
 feature_selection_eval(lgb_param, X, X_add.drop('SK_ID_CURR', axis=1), y['y'], None, nfolds, set=1, file=filename,
-                       fixed_epoch=fixed, seed=seed)
+                       fixed_epoch=fixed, seed=seed, nskip=nskip)
