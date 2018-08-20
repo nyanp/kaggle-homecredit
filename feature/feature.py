@@ -13,9 +13,9 @@ import features_common
 import add0812
 
 class Feature(object):
-    def __init__(self, update='all'):
+    def __init__(self, update='all', prep_mode=0):
         tables = {'credit': credit.Credit() if update == 'all' or ('credit' in update) else credit.Credit.from_cache(),
-                  'bureau': bureau.Bureau() if update == 'all' or ('bureau' in update) else bureau.Bureau.from_cache(),
+                  'bureau': bureau.Bureau(prep_mode=prep_mode) if update == 'all' or ('bureau' in update) or (prep_mode > 0) else bureau.Bureau.from_cache(),
                   'prev': prev.Prev() if update == 'all' or ('prev' in update) else prev.Prev.from_cache(),
                   'install': install.Install() if update == 'all' or ('install' in update) else install.Install.from_cache(),
                   'cash': pos_cash.PosCash() if update == 'all' or ('cash' in update) else pos_cash.PosCash.from_cache(),
@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
     argc = len(sys.argv)
 
-    if argc == 2:
+    if argc >= 2:
         if sys.argv[1] == 'nocache':
             update = 'all'
         elif sys.argv[1] == 'cache':
@@ -102,15 +102,18 @@ if __name__ == "__main__":
     else:
         update = []
 
+    save_file = 'features_all.f' if argc <= 2 else sys.argv[2]
+    prep_mode = 0 if argc <= 3 else int(sys.argv[3])
+
     start = time.time()
-    f = Feature(update=update)
+    f = Feature(update=update, prep_mode=prep_mode)
 
     print(f.df.shape)
 
     # 実装に依存して順番が変わるとCVが変わってしまうので、最後にソートしておく。
     x = f.df[sorted(f.df.columns)]
 
-    f.df.to_feather('features_all.f')
+    f.df.to_feather(save_file)
     f.df.head(100).to_csv('all_sample.csv', index=False)
 
     print('finished generating features. ({} sec)'.format(time.time() - start))

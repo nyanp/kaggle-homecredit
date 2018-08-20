@@ -30,9 +30,11 @@ def prep_and_split(df):
 # Baseline CV:0.7950 LB:0.798
 class LGBM(object):
     def __init__(self, name, comment=None, remove_columns = None,
-                 param = None, kfold_seed = 47, lgb_seed = None, n_estimators = 10000, log = None):
+                 param = None, kfold_seed = 47, lgb_seed = None, n_estimators = 10000, log = None,
+                 basepath = BASE_X_PATH, undersample = 0):
         self.name = name
         self.comment = comment
+        self.undersample = undersample
 
         if log is None:
             self.logfile = open('../output/{}.txt'.format(name), 'w')
@@ -68,8 +70,9 @@ class LGBM(object):
         self.kfold_seed = kfold_seed
         self.feature_importance_df = None
         self.classifiers = []
+        self.basepath = basepath
 
-        self.x = pd.read_feather(BASE_X_PATH).reset_index(drop=True)
+        self.x = pd.read_feather(basepath).reset_index(drop=True)
 
         if remove_columns is not None:
             self.x.drop(remove_columns, axis=1, inplace=True)
@@ -81,6 +84,19 @@ class LGBM(object):
                 self.x.drop(c, axis=1, inplace=True)
 
         print('shape: {}'.format(self.x.shape))
+
+        if undersample > 0:
+            print('shape(before undersampling) : {}, {}'.format(self.x[~self.x.TARGET.isnull()].shape, self.x[self.x.TARGET.isnull()].shape))
+
+            xtest = self.x[self.x.TARGET.isnull()].reset_index(drop=True)
+            xtrain = self.x[~self.x.TARGET.isnull()].reset_index(drop=True)
+
+            cash = xtrain.query('NAME_CONTRACT_TYPE == "Cash loans"')
+            revolving = xtrain.query('NAME_CONTRACT_TYPE == "Revolving loans"').sample(undersample)
+            self.x = pd.concat([cash, revolving, xtest]).copy().reset_index(drop=True)
+
+            print('shape(after undersampling) : {}, {}'.format(self.x[~self.x.TARGET.isnull()].shape, self.x[self.x.TARGET.isnull()].shape))
+
 
         self.x_train, self.y_train, self.x_test = prep_and_split(self.x)
 
@@ -119,6 +135,8 @@ class LGBM(object):
         self.logfile.write('features: {}\n'.format(self.x_train.columns.tolist()))
         if self.comment is not None:
             self.logfile.write('comment: {}\n'.format(self.comment))
+        self.logfile.write('feature file: {}\n'.format(self.basepath))
+        self.logfile.write('undersample: {}\n'.format(self.undersample))
 
         self.logfile.write('output: ../output/{}.csv\n'.format(self.name))
         self.logfile.flush()
