@@ -29,7 +29,7 @@ def prep_and_split(df):
 
 # Baseline CV:0.7950 LB:0.798
 class LGBM(object):
-    def __init__(self, name, comment=None, remove_columns = None,
+    def __init__(self, name, comment=None, remove_columns = None, remove_prefix_list = None,
                  param = None, kfold_seed = 47, lgb_seed = None, n_estimators = 10000, log = None,
                  basepath = BASE_X_PATH, undersample = 0):
         self.name = name
@@ -45,7 +45,7 @@ class LGBM(object):
             self.param = {
                 'objective': 'binary',
                 'learning_rate': 0.02,
-                'max_bin':300,
+                'max_bin':400,
                 'max_depth': -1,
                 'num_leaves': 30,
                 'min_child_samples': 70,
@@ -77,6 +77,14 @@ class LGBM(object):
         if remove_columns is not None:
             self.x.drop(remove_columns, axis=1, inplace=True)
 
+        if remove_prefix_list is not None:
+            droplist = []
+            for r in remove_prefix_list:
+                for c in self.x:
+                    if c.startswith(r) and c not in droplist:
+                        droplist.append(c)
+            print('total {} columns dropped by droplist. columns: {}'.format(len(droplist), droplist))
+            self.x.drop(droplist, axis=1, inplace=True)
 
         for c in ['SK_ID_CURR', 'SK_ID_BUREAU', 'SK_ID_PREV', 'index']:
             if c in self.x:
@@ -201,9 +209,10 @@ if __name__ == "__main__":
 
     name = 'lgbm_m30' if argc == 1 else sys.argv[1]
     comment = '' if argc < 3 else sys.argv[2]
+    basepath = BASE_X_PATH if argc < 4 else sys.argv[3]
 
     #for seed in range(30, 50):
-    m = LGBM(name=name, comment=comment)
+    m = LGBM(name=name, comment=comment, basepath=basepath)
     df, feather, _, _ = m.cv()
     df.reset_index(drop=True).to_feather('{}_importance.f'.format(m.name))
 
