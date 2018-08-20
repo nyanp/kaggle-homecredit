@@ -1,7 +1,7 @@
 import lgbm
 import numpy as np
 
-debug=True
+debug=False
 
 def train_1st_stage(remove_list = None, postfix = '', param=None):
     print('param: {}'.format(param))

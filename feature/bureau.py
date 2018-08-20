@@ -118,6 +118,7 @@ class Bureau(object):
 
         df_base = features_common.aggregate(df_base, agg, b.query('DAYS_CREDIT >= -720'), 'b_720_')
         df_base = features_common.aggregate(df_base, agg, b.query('DAYS_CREDIT >= -365'), 'b_365_')
+        df_base = features_common.aggregate(df_base, agg, b.query('DAYS_CREDIT >= -180'), 'b_180_')
 
         self.df = b
         return df_base

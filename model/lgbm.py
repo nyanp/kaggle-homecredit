@@ -156,8 +156,9 @@ class LGBM(object):
         print(strlog)
         self.logfile.write(strlog+'\n')
 
+        preds = preds_test.mean(axis=0)
+
         if submission:
-            preds = preds_test.mean(axis=0)
             sub = pd.read_csv('../input/sample_submission.csv')
             sub['TARGET'] = preds
             sub.to_csv('../output/{}.csv'.format(self.name), index=False)
@@ -171,7 +172,7 @@ class LGBM(object):
 
         #self.display_importances(self.feature_importance_df, self.name)
 
-        return self.feature_importance_df, full_auc
+        return self.feature_importance_df, full_auc, oof_preds, preds
 
 
 if __name__ == "__main__":
@@ -185,7 +186,7 @@ if __name__ == "__main__":
 
     #for seed in range(30, 50):
     m = LGBM(name=name, comment=comment)
-    df, feather = m.cv()
+    df, feather, _, _ = m.cv()
     df.reset_index(drop=True).to_feather('{}_importance.f'.format(m.name))
 
     low_importance = df[df.importance == 0].groupby('feature')\
