@@ -9,6 +9,7 @@ class XGBoost(model_base.ModelBase):
         super().__init__(name, comment)
 
         x = pd.read_feather(basepath).reset_index(drop=True)
+        x = pd.get_dummies(x)
 
         self.clf = None
         self.X_train = x[~x.TARGET.isnull()].reset_index(drop=True).drop('TARGET', axis=1)
