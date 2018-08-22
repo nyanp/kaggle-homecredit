@@ -49,7 +49,7 @@ class XGBoost(model_base.ModelBase):
     def train(self, train_x, train_y, valid_x, valid_y) -> None:
         self.clf = XGBClassifier(**self.param)
         self.clf.fit(train_x, train_y, eval_set=[(valid_x, valid_y)],
-                     eval_metric='auc', verbose=25, early_stopping_rounds=200)
+                     eval_metric='auc', verbose=True, early_stopping_rounds=200)
 
     def predict(self, test_x):
         return self.clf.predict_proba(test_x)[:, 1]
