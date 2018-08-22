@@ -62,29 +62,11 @@ class Bureau(object):
         def apply_m40000(x):
             return x if x > -40000 else np.nan
 
-        def apply_plan(x):
-            if x <= 0:
-                return np.nan
-            if x >= 30000:
-                return np.nan
-            return x
+        self.df['DAYS_CREDIT_UPDATE'] = self.df['DAYS_CREDIT_UPDATE'].apply(apply_m40000)
 
-        if self.prep_mode == 1:
-            self.df['DAYS_CREDIT_UPDATE'] = self.df['DAYS_CREDIT_UPDATE'].apply(apply_m40000)
-        if self.prep_mode == 2:
-            self.df['DAYS_CREDIT_ENDDATE'] = self.df['DAYS_CREDIT_ENDDATE'].apply(apply_m40000)
-        if self.prep_mode == 3:
-            self.df['AMT_CREDIT_MAX_OVERDUE'].replace(np.nan, 0, inplace=True)
-        if self.prep_mode == 4:
-            self.df = self.df.query('CREDIT_CURRENCY == "currency 1"').reset_index(drop=True)
-        if self.prep_mode == 5:
-            self.df['AMT_CREDIT_SUM_DEBT'].replace(0, np.nan, inplace=True)
-        if self.prep_mode == 6:
-            self.df['DAYS_CREDIT_PLAN'] = self.df['DAYS_CREDIT_PLAN'].apply(apply_plan)
-        if self.prep_mode == 7:
-            self.df = self.df.query('CREDIT_ACTIVE == "Active" or CREDIT_ACTIVE == "Closed"').reset_index(drop=True)
+        self.df = self.df.query('CREDIT_CURRENCY == "currency 1"').reset_index(drop=True)
 
-        print('prep mode: {}, shape: {}'.format(self.prep_mode, self.df.shape))
+        self.df = self.df.query('CREDIT_ACTIVE == "Active" or CREDIT_ACTIVE == "Closed"').reset_index(drop=True)
 
         self.df = bureau
         self.balance = bureau_balance

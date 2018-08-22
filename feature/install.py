@@ -154,6 +154,9 @@ class Install(object):
         df_base = features_common.aggregate(df_base, agg_full, self.df.query('is_credit == 1'), 'ins_credit_')
 
         # note: 720, 90daysを足してもスコア上がらず。countを足すのもダメ。
+
+        #i1
+        df_base = features_common.aggregate(df_base, agg_365, self.df.query('DAYS_ENTRY_PAYMENT >= -1000'), 'ins1000_')
         df_base = features_common.aggregate(df_base, agg_365, self.df.query('DAYS_ENTRY_PAYMENT >= -365'), 'ins365_')
         df_base = features_common.aggregate(df_base, agg_180, self.df.query('DAYS_ENTRY_PAYMENT >= -180'), 'ins180_')
 

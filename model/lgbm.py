@@ -128,7 +128,7 @@ class LGBM(object):
         plt.tight_layout()
         plt.savefig('{}.png'.format(filename))
 
-    def cv(self, nfolds=5, submission=True):
+    def cv(self, nfolds=5, submission=True, save_oof=None):
         self.classifiers.clear()
 
         folds = KFold(n_splits=nfolds, shuffle=True, random_state=self.kfold_seed)
@@ -197,6 +197,9 @@ class LGBM(object):
         self.logfile.flush()
 
         #self.display_importances(self.feature_importance_df, self.name)
+        if save_oof is not None:
+            np.save(save_oof.format('train'), oof_preds)
+            np.save(save_oof.format('test'), preds)
 
         return self.feature_importance_df, full_auc, oof_preds, preds
 
@@ -210,10 +213,13 @@ if __name__ == "__main__":
     name = 'lgbm_m30' if argc == 1 else sys.argv[1]
     comment = '' if argc < 3 else sys.argv[2]
     basepath = BASE_X_PATH if argc < 4 else sys.argv[3]
+    save_oof = None if argc < 5 else sys.argv[4]
+
+    print('name:{}, base:{}, oof:{}'.format(name,basepath,save_oof))
 
     #for seed in range(30, 50):
     m = LGBM(name=name, comment=comment, basepath=basepath)
-    df, feather, _, _ = m.cv()
+    df, feather, _, _ = m.cv(save_oof=save_oof)
     df.reset_index(drop=True).to_feather('{}_importance.f'.format(m.name))
 
     low_importance = df[df.importance == 0].groupby('feature')\
