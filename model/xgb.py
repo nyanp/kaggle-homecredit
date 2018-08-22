@@ -14,7 +14,7 @@ class XGBoost(model_base.ModelBase):
         self.clf = None
         self.X_train = x[~x.TARGET.isnull()].reset_index(drop=True).drop('TARGET', axis=1)
         self.y_train = x[~x.TARGET.isnull()].reset_index(drop=True).TARGET
-        self.X_test = x[x.TARGET.isnull()].reset_index(drop=True)
+        self.X_test = x[x.TARGET.isnull()].reset_index(drop=True).drop('TARGET', axis=1)
 
         if param is None:
             self.param = {
@@ -60,6 +60,31 @@ if __name__ == "__main__":
 
     est = None if argc == 1 else int(sys.argv[1])
 
-    m = XGBoost('xgb', 'xgb', n_estimators=est)
+    m = XGBoost('xgb', 'xgb', n_estimators=est if est > 0 else None)
 
     m.cv(5, submission='../output/xgb.csv', save_oof='../stack/{}_xgb.npy')
+
+    if est < 0:
+        p = {
+            'objective': 'binary:logistic',
+            'learning_rate': 0.02,
+            'n_estimators': 10000,
+            'max_depth': 4,
+            'min_child_weight': 5,
+            'subsample': 0.8,
+            'colsample_bytree': 0.8,
+            'reg_lambda': 1.2,
+            'scale_pos_weight': 1,
+            'nthread': 16
+        }
+        # CV
+        for rl in [1.2, 3]:
+            for d in [4,8,16,32]:
+                for cs in [0.2,0.5,0.8]:
+                    p['reg_lambda'] = rl
+                    p['max_depth'] = d
+                    p['colsample_bytree'] = cs
+                    name = 'xgb_{}_{}_{}'.format(rl,d,cs)
+
+                    m = XGBoost(name, 'xgb', param=p)
+                    m.cv(5)
