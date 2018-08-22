@@ -87,4 +87,4 @@ if __name__ == "__main__":
                     name = 'xgb_{}_{}_{}'.format(rl,d,cs)
 
                     m = XGBoost(name, 'xgb', param=p)
-                    m.cv(5)
+                    m.cv(5, submission='../output/{}.csv'.format(name), save_oof='../stack/{}_'+name+'.npy')
