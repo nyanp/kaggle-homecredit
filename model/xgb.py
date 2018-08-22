@@ -1,7 +1,7 @@
 import pandas as pd
 import model_base
 from xgboost import XGBClassifier
-
+import sys
 
 class XGBoost(model_base.ModelBase):
     def __init__(self, name, comment='', basepath='../feature/features_all.f',
@@ -54,6 +54,10 @@ class XGBoost(model_base.ModelBase):
 
 
 if __name__ == "__main__":
-    m = XGBoost('xgb', 'xgb', n_estimators=100)
+    argc = len(sys.argv)
+
+    est = None if argc == 1 else int(sys.argv[1])
+
+    m = XGBoost('xgb', 'xgb', n_estimators=est)
 
     m.cv(5, submission='../output/xgb.csv', save_oof='../stack/{}_xgb.npy')
