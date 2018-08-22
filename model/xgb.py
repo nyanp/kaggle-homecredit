@@ -26,7 +26,8 @@ class XGBoost(model_base.ModelBase):
                 'subsample': 0.8,
                 'colsample_bytree': 0.8,
                 'reg_lambda': 1.2,
-                'scale_pos_weight': 2.5
+                'scale_pos_weight': 2.5,
+                'nthread': 16
             }
         else:
             self.param = param
