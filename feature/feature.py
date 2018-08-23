@@ -66,6 +66,9 @@ class Feature(object):
         d = pd.read_feather('../model/x_add2.ftr')
         self.df = pd.merge(self.df, d[['SK_ID_CURR', 'POS_PREDICTED']], on='SK_ID_CURR', how='left')
 
+        d = pd.read_feather('p.ftr')
+        self.df = pd.merge(self.df, d[['SK_ID_CURR', 'PRED_DPD_P_INS']], on='SK_ID_CURR', how='left')
+
 
     def _load_add(self):
         df = features_common.read_application()
