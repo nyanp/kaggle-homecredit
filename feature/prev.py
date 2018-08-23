@@ -22,6 +22,11 @@ class Prev(object):
         self.df['DAYS_LAST_DUE'].replace(365243, np.nan, inplace=True)
         self.df['DAYS_TERMINATION'].replace(365243, np.nan, inplace=True)
 
+        # p3 userに瑕疵が無さそうな理由のものを除く
+        self.df = self.df[~self.df['CODE_REJECT_REASON'].isin(['VERIF', 'SYSTEM'])].reset_index(drop=True)
+
+        print(self.df.shape)
+
     def _target_encoding(self, col, name):
         tgt = self.df.groupby(col)['TARGET'].mean().reset_index()
 
@@ -42,7 +47,7 @@ class Prev(object):
         self.df['IS_WEEKEND_APPR'] = self.df.WEEKDAY_APPR_PROCESS_START.isin(['SUNDAY', 'SATURDAY']).astype(np.int32)
         self.df['NAME_TYPE_SUITE_Unaccompanied'] = (self.df.NAME_TYPE_SUITE == 'Unaccompanied').astype(np.int32)
 
-        self.df.to_feather('cache/prev.f')
+        #self.df.to_feather('cache/prev.f')
         self.transformed = True
 
     @classmethod
