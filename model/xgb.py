@@ -5,7 +5,7 @@ import sys
 
 class XGBoost(model_base.ModelBase):
     def __init__(self, name, comment='', basepath='../feature/features_all.f',
-                 param=None, n_estimators=None):
+                 param=None, n_estimators=None, seed=None):
         super().__init__(name, comment)
 
         x = pd.read_feather(basepath).reset_index(drop=True)
@@ -24,8 +24,8 @@ class XGBoost(model_base.ModelBase):
                 'max_depth': 4,
                 'min_child_weight': 5,
                 'subsample': 0.8,
-                'colsample_bytree': 0.8,
-                'reg_lambda': 1.2,
+                'colsample_bytree': 0.5,
+                'reg_lambda': 3,
                 'scale_pos_weight': 2.5,
                 'nthread': 16
             }
@@ -34,6 +34,9 @@ class XGBoost(model_base.ModelBase):
 
         if n_estimators is not None:
             self.param['n_estimators'] = n_estimators
+
+        if seed is not None:
+            self.param['random_state'] = seed
 
         print('X:{}'.format(self.X_train.shape))
 
@@ -60,31 +63,7 @@ if __name__ == "__main__":
 
     est = None if argc == 1 else int(sys.argv[1])
 
-    m = XGBoost('xgb', 'xgb', n_estimators=est if est > 0 else None)
-
-    m.cv(5, submission='../output/xgb.csv', save_oof='../stack/{}_xgb.npy')
-
-    if est < 0:
-        p = {
-            'objective': 'binary:logistic',
-            'learning_rate': 0.02,
-            'n_estimators': 10000,
-            'max_depth': 4,
-            'min_child_weight': 5,
-            'subsample': 0.8,
-            'colsample_bytree': 0.8,
-            'reg_lambda': 1.2,
-            'scale_pos_weight': 1,
-            'nthread': 16
-        }
-        # CV
-        for rl in [1.2, 3]:
-            for d in [4,8,16,32]:
-                for cs in [0.2,0.5,0.8]:
-                    p['reg_lambda'] = rl
-                    p['max_depth'] = d
-                    p['colsample_bytree'] = cs
-                    name = 'xgb_{}_{}_{}'.format(rl,d,cs)
-
-                    m = XGBoost(name, 'xgb', param=p)
-                    m.cv(5, submission='../output/{}.csv'.format(name), save_oof='../stack/{}_'+name+'.npy')
+    for i in range(10):
+        name = 'xgb_seed{}'.format(i)
+        m = XGBoost(name, 'xgb', n_estimators=None, seed=i)
+        m.cv(5, submission='../output/{}.csv'.format(name), save_oof='../stack/{}_' + name + '.npy')
