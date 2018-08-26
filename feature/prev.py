@@ -97,4 +97,11 @@ class Prev(object):
         df_base = features_common.aggregate(df_base, agg, self.df.query('NAME_CONTRACT_TYPE == "Cash loans"'), 'p_cash')
         df_base = features_common.aggregate(df_base, agg, self.df.query('NAME_CONTRACT_TYPE == "Consumer loans"'), 'p_cunsumer')
 
+        # application-perday
+        perday = self.df.groupby(['SK_ID_CURR', 'DAYS_DECISION', 'AMT_CREDIT'])['SK_ID_PREV'].count().reset_index().rename(columns={'SK_ID_PREV': 'APP_PER_DAY'})
+        agg = {
+            'APP_PER_DAY': ['mean', 'sum']
+        }
+        df_base = features_common.aggregate(df_base, agg, perday, 'p_')
+
         return df_base
