@@ -66,6 +66,6 @@ class LGBM_Neptune(model_base.ModelBase):
 
 if __name__ == "__main__":
 
-    m = LGBM_Neptune('neptune', 'dataframe from open solution', n_estimators=100)
+    m = LGBM_Neptune('neptune', 'dataframe from open solution')
 
     m.cv(5, submission='../output/neptune.csv', save_oof='../stack/{}_neptune.npy')
