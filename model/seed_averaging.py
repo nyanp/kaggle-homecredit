@@ -1,5 +1,6 @@
 import lgbm
 import sys
+import gc
 
 if __name__ == "__main__":
     argc = len(sys.argv)
@@ -16,6 +17,10 @@ if __name__ == "__main__":
         else:
             name = 'lgbm_seed{}'.format(i)
 
+        gc.collect()
+
         m = lgbm.LGBM(name, lgb_seed=i, n_estimators=100 if debug else 10000, undersample=sample)
 
         m.cv(save_oof='../stack/{}_'+name+'.npy')
+
+        del m

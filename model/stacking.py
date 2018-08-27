@@ -1,5 +1,6 @@
 import lgbm
 import numpy as np
+import gc
 
 debug=False
 
@@ -24,6 +25,8 @@ def train_1st_stage(remove_list = None, postfix = '', param=None, averaging=1):
             print('{} : auc {}'.format(postfix, auc))
             np.save('train_{}_seed{}'.format(postfix,i), train1)
             np.save('test_{}_seed{}'.format(postfix,i), test1)
+            del m
+            gc.collect()
 
 
 train_1st_stage(None, 'full')
