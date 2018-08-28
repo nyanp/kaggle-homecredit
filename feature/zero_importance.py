@@ -108,5 +108,17 @@ useless_features = [
     'p_cashmean(NAME_GOODS_CATEGORY_Consumer Electronics)',
     'p_cashmean(NAME_GOODS_CATEGORY_Mobile)',
     'b_closed_mean(AMT_CREDIT_SUM_OVERDUE)',
-    'p_cashmean(NAME_GOODS_CATEGORY_XNA)'
+    'p_cashmean(NAME_GOODS_CATEGORY_XNA)',
+
+    'credit_active_mean(CNT_PAYMENT)',
+    'credit_active_mean(NAME_YIELD_GROUP_high)',
+    'b_180_max(BB_MONTHS_BALANCE_MAX)',
+    'credit_active_mean(NAME_YIELD_GROUP_low_action)',
+    'b_180_sum(CNT_CREDIT_PROLONG)',
+    'credit_active_mean(NAME_YIELD_GROUP_low_normal)',
+    'b_consumer_mean(AMT_CREDIT_SUM_LIMIT)',
+    'credit_active_mean(DAYS_LAST_DUE_1ST_VERSION)',
+    'b_mortage_mean(DAYS_ENDDATE_FACT)',
+    'b_car_mean(AMT_CREDIT_MAX_OVERDUE)',
+    'ins_consumer_nunique(NUM_INSTALMENT_VERSION)',
 ]
