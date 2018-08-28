@@ -7,3 +7,6 @@
 *.png
 *.ipynb
 *.txt
+*.npy
+*.hdf5
+*.bat
