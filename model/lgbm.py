@@ -48,7 +48,7 @@ class LGBM(object):
                 'max_bin':400,
                 'max_depth': -1,
                 'num_leaves': 30,
-                'drop_rate': 0.05
+                'drop_rate': 0.05,
                 'min_child_samples': 70,
                 'subsample': 1.0,
                 'subsample_freq': 1,
