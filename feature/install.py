@@ -147,7 +147,7 @@ class Install(object):
             'DAYS_ENTRY_PAYMENT': ['sum'],
         }
 
-        df_base = features_common.aggregate(df_base, agg_full, self.df, 'ins_')
+        #df_base = features_common.aggregate(df_base, agg_full, self.df, 'ins_')
 
         df_base = features_common.aggregate(df_base, agg_full, self.df.query('NAME_CONTRACT_TYPE == "Consumer loans"'), 'ins_consumer_')
         df_base = features_common.aggregate(df_base, agg_full, self.df.query('NAME_CONTRACT_TYPE == "Cash loans"'), 'ins_cash_')
