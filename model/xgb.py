@@ -5,11 +5,24 @@ import sys
 
 class XGBoost(model_base.ModelBase):
     def __init__(self, name, comment='', basepath='../feature/features_all.f',
-                 param=None, n_estimators=None, seed=None):
+                 param=None, n_estimators=None, seed=None, undersample = 0):
         super().__init__(name, comment)
 
         x = pd.read_feather(basepath).reset_index(drop=True)
-        x = pd.get_dummies(x)
+        self.x = pd.get_dummies(x)
+        
+        if undersample > 0:
+            print('shape(before undersampling) : {}, {}'.format(self.x[~self.x.TARGET.isnull()].shape, self.x[self.x.TARGET.isnull()].shape))
+
+            xtest = self.x[self.x.TARGET.isnull()].reset_index(drop=True)
+            xtrain = self.x[~self.x.TARGET.isnull()].reset_index(drop=True)
+
+            cash = xtrain.query('NAME_CONTRACT_TYPE == "Cash loans"')
+            revolving = xtrain.query('NAME_CONTRACT_TYPE == "Revolving loans"').sample(undersample)
+            x = pd.concat([cash, revolving, xtest]).copy().reset_index(drop=True)
+
+            print('shape(after undersampling) : {}, {}'.format(x[x.TARGET.isnull()].shape, x[x.TARGET.isnull()].shape))
+
 
         self.clf = None
         self.X_train = x[~x.TARGET.isnull()].reset_index(drop=True).drop('TARGET', axis=1)
@@ -64,6 +77,6 @@ if __name__ == "__main__":
     est = None if argc == 1 else int(sys.argv[1])
 
     for i in range(10):
-        name = 'xgb_seed{}'.format(i)
-        m = XGBoost(name, 'xgb', n_estimators=None, seed=i)
+        name = 'xgb_seed{}_uc'.format(i)
+        m = XGBoost(name, 'xgb', n_estimators=None, seed=i, undersample=8000)
         m.cv(5, submission='../output/{}.csv'.format(name), save_oof='../stack/{}_' + name + '.npy')
