@@ -59,7 +59,7 @@ class LGBM(object):
                 'is_unbalance': False,
                 'metric': 'auc',
                 'n_estimators': 10000,
-                'boosting_type': 'dart'
+                'boosting_type': 'gbdt'
             }
         else:
             self.param = param
