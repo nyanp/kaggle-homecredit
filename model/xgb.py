@@ -8,8 +8,7 @@ class XGBoost(model_base.ModelBase):
                  param=None, n_estimators=None, seed=None, undersample = 0):
         super().__init__(name, comment)
 
-        x = pd.read_feather(basepath).reset_index(drop=True)
-        self.x = pd.get_dummies(x)
+        self.x = pd.read_feather(basepath).reset_index(drop=True)
         
         if undersample > 0:
             print('shape(before undersampling) : {}, {}'.format(self.x[~self.x.TARGET.isnull()].shape, self.x[self.x.TARGET.isnull()].shape))
@@ -22,7 +21,7 @@ class XGBoost(model_base.ModelBase):
             x = pd.concat([cash, revolving, xtest]).copy().reset_index(drop=True)
 
             print('shape(after undersampling) : {}, {}'.format(x[x.TARGET.isnull()].shape, x[x.TARGET.isnull()].shape))
-
+        x = pd.get_dummies(x)
 
         self.clf = None
         self.X_train = x[~x.TARGET.isnull()].reset_index(drop=True).drop('TARGET', axis=1)
