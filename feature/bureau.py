@@ -126,7 +126,8 @@ class Bureau(object):
         df_base = features_common.aggregate(df_base, agg, b.query('CREDIT_TYPE == "Car loan"'), 'b_car_')
         df_base = features_common.aggregate(df_base, agg, b.query('CREDIT_TYPE == "Mortgage"'), 'b_mortage_')
         df_base = features_common.aggregate(df_base, agg, b.query('CREDIT_TYPE == "Microloan"'), 'b_micro_')
-
+        
+        df_base = features_common.aggregate(df_base, agg, b.query('DAYS_CREDIT >= -1000'), 'b_1000_')
         df_base = features_common.aggregate(df_base, agg, b.query('DAYS_CREDIT >= -720'), 'b_720_')
         df_base = features_common.aggregate(df_base, agg, b.query('DAYS_CREDIT >= -365'), 'b_365_')
         df_base = features_common.aggregate(df_base, agg, b.query('DAYS_CREDIT >= -180'), 'b_180_')
