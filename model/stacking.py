@@ -29,10 +29,6 @@ def train_1st_stage(remove_list = None, postfix = '', param=None, averaging=1):
             gc.collect()
 
 
-train_1st_stage(None, 'full')
-train_1st_stage(['ins','p_','pos','b_','credit'], 'app', averaging=10)
-train_1st_stage(['ins','pos','b_','credit'], 'app_prev', averaging=10)
-train_1st_stage(['p_','pos','b_','credit'], 'app_ins', averaging=10)
-train_1st_stage(['ins','p_','b_','credit'], 'app_pos', averaging=10)
-train_1st_stage(['ins','p_','pos','credit'], 'app_bureau', averaging=10)
-train_1st_stage(['ins','p_','pos','b_'], 'app_credit', averaging=10)
+train_1st_stage(None, 'full', averaging=20)
+train_1st_stage(['ins','p_','pos','b_','credit'], 'app', averaging=20)
+
