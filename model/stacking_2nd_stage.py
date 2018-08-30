@@ -5,27 +5,43 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_auc_score
 
 base_models = {
-    'lgbm_base':{'base': '{{}}_lgbm_seed{}', 'n':20},
-    'xgb':{'base': '{{}}_xgb_seed{}', 'n':6},
-    'app': {'base': '{{}}_app_seed{}', 'n':10},
-    'app_prev': {'base': '{{}}_app_prev_seed{}', 'n':10},
-    'app_ins': {'base': '{{}}_app_ins_seed{}', 'n':10},
-    'app_credit': {'base': '{{}}_app_credit_seed{}', 'n':10},
-    'app_pos': {'base': '{{}}_app_pos_seed{}', 'n':10},
-    'lgb_p3': ['{}_lgb46_p3','{}_lgb46_p4','{}_lgb46_p5','{}_lgb46_p6','{}_lgb46_p7'],
-    'nn': {'base': '{{}}_nn_normal_v0_seed{}', 'n':10},
-    'nn2': {'base': '{{}}_nn_normal_v0_seed{}_lr0003', 'n': 7},
-    #'nn': ['{}_nn_normal_v0_seed0','{}_nn_normal_v0_seed1','{}_nn_normal_v0_seed2','{}_nn_normal_v0_seed3','{}_nn_normal_v0_seed4',
-    #       '{}_nn_normal_v0_seed5','{}_nn_normal_v0_seed6','{}_nn_normal_v0_seed7','{}_nn_normal_v0_seed8','{}_nn_normal_v0_seed9',
-    #       '{}_nn_normal_v0_seed0_lr0003','{}_nn_normal_v0_seed1_lr0003','{}_nn_normal_v0_seed2_lr0003','{}_nn_normal_v0_seed3_lr0003']
+    'lgbm_base':{'base': '{{}}_lgbm_seed{}', 'n':20}, # 0.8003603007398283
+    'xgb':{'base': '{{}}_xgb_seed{}', 'n':6}, # 0.7993670609257622
+    'app': {'base': '{{}}_app_seed{}', 'n':10}, # 0.7789331061695743
 
-    #'nn0',
-    #'nn0_seed2',
-    #'nn2_seed2'
+    'lgb_p3': ['{}_lgb46_p3','{}_lgb46_p4','{}_lgb46_p5','{}_lgb46_p6','{}_lgb46_p7','{}_lgb46_i2'], # 0.8005221621499997
+
+    'nn0': ['{}_nn_normal_v0_seed0'],
+    'nn1': ['{}_nn_normal_v0_seed1'],
+    'nn2': ['{}_nn_normal_v0_seed2'],
+    'nn3': ['{}_nn_normal_v0_seed3'],
+    'nn4': ['{}_nn_normal_v0_seed4'],
+    'nn5': ['{}_nn_normal_v0_seed5'],
+    'nn6': ['{}_nn_normal_v0_seed6'],
+    'nn7': ['{}_nn_normal_v0_seed7'],
+    'nn8': ['{}_nn_normal_v0_seed8'],
+    'nn9': ['{}_nn_normal_v0_seed9'],
+
+    'experimental': {'base': '{{}}_full_seed{}_dart', 'n': 20},  # 0.8007351521496229
+    'experimental_app': {'base': '{{}}_app_seed{}_dart', 'n': 20},  # 0.7794118894807429
+
+    #'nn2': {'base': '{{}}_nn_normal_v0_seed{}_lr0003', 'n': 7} # 0.7878321473939883
 }
 
 base_path = '../stack/'
 
+base_models2 = {
+    'lgbm_base':{'base': 'undersample/{{}}_lgbm_sample8000_seed{}', 'n':20},
+    'xgb':{'base': 'undersample/{{}}_xgb_seed{}_uc', 'n':2},
+    'app': {'base': 'undersample/{{}}_app_seed{}_uc', 'n':10},
+    'app_prev': {'base': 'undersample/{{}}_app_prev_seed{}_uc', 'n':10},
+    'app_ins': {'base': 'undersample/{{}}_app_ins_seed{}_uc', 'n':10},
+    'app_credit': {'base': 'undersample/{{}}_app_credit_seed{}_uc', 'n':10},
+    'app_pos': {'base': 'undersample/{{}}_app_pos_seed{}_uc', 'n':10},
+    'lgb_p3': ['{}_lgb46_p3','{}_lgb46_p4','{}_lgb46_p5','{}_lgb46_p6','{}_lgb46_p7'],
+    'nn': {'base': '{{}}_nn_normal_v0_seed{}', 'n':10},
+    'nn2': {'base': '{{}}_nn_normal_v0_seed{}_lr0003', 'n': 7}
+}
 
 if __name__ == '__main__':
 
@@ -115,4 +131,4 @@ if __name__ == '__main__':
     print(test.describe())
     print(test.shape)
 
-    test.to_csv('test_stack_180829.csv',index=False)
+    test.to_csv('test_stack_180829_3.csv',index=False)
